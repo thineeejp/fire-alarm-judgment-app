@@ -437,7 +437,7 @@ function collectData() {
         地上階数: parseInt(document.getElementById('ground-floors').value) || 0,
         地下階数: parseInt(document.getElementById('basement-floors').value) || 0,
         指定可燃物倍数: parseFloat(document.getElementById('flammable-multiplier').value) || 0,
-        特定一階段フラグ: document.querySelector('input[name="specific-single-stair"]:checked')?.value === 'true',
+        nanaGouJoukenFlag: document.querySelector('input[name="item7-condition"]:checked')?.value === 'true',
         is小規模特複フラグ: document.querySelector('input[name="small-scale-complex"]:checked')?.value === 'true',
         複合用途リスト: [],
         階情報リスト: []
@@ -638,7 +638,7 @@ function createInputSummaryCard(建物情報) {
     summary += `地上階数: ${建物情報.地上階数}階\n`;
     summary += `地下階数: ${建物情報.地下階数}階\n`;
     summary += `指定可燃物倍数: ${建物情報.指定可燃物倍数}\n`;
-    summary += `特定一階段等防火対象物: ${建物情報.特定一階段フラグ ? 'はい' : 'いいえ'}\n`;
+    summary += `7号条件: ${建物情報.nanaGouJoukenFlag ? '該当する' : '該当しない'}\n`;
     
     if (建物情報.is小規模特複フラグ !== undefined) {
         summary += `小規模特複: ${建物情報.is小規模特複フラグ ? 'はい' : 'いいえ'}\n`;

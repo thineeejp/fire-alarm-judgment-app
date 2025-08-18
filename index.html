@@ -124,19 +124,23 @@
                         <input type="number" id="flammable-multiplier" name="flammable-multiplier" class="form-input" min="0" step="0.01" value="0">
                     </div>
 
-                    <!-- 特定一階段等防火対象物 -->
                     <div class="form-group">
-                        <label class="form-label">特定一階段等防火対象物に該当するか</label>
+                        <label class="form-label">
+                            令第21条第1項第7号の条件
+                            <span class="help-icon" data-help="特定用途部分が避難階以外の階にあり、そこから地上への直通階段が実質的に1つしかない場合にチェックします。">
+                                <span class="material-icons">help_outline</span>
+                            </span>
+                        </label>
                         <div class="radio-group">
                             <label class="radio-label">
-                                <input type="radio" name="specific-single-stair" value="true" class="radio-input">
+                                <input type="radio" name="item7-condition" value="true" class="radio-input">
                                 <span class="radio-custom"></span>
-                                はい
+                                該当する
                             </label>
                             <label class="radio-label">
-                                <input type="radio" name="specific-single-stair" value="false" class="radio-input" checked>
+                                <input type="radio" name="item7-condition" value="false" class="radio-input" checked>
                                 <span class="radio-custom"></span>
-                                いいえ
+                                該当しない
                             </label>
                         </div>
                     </div>
