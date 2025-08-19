@@ -135,7 +135,7 @@ function addComplexUse() {
                 <option value="(5)項ロ">(5)項ロ 寄宿舎、下宿又は共同住宅</option>
                 <option value="(6)項イ(1)">(6)項イ(1) 病院</option>
                 <option value="(6)項イ(2)">(6)項イ(2) 有床診療所・助産所</option>
-                <option value="(6)項イ(3)">(6)項イ(3) 上記以外の病院等(1-3床)</option>
+                <option value="(6)項イ(3)">(6)項イ(3) 上記以外の病物等(1-3床)</option>
                 <option value="(6)項イ(4)">(6)項イ(4) 無床診療所・無床助産所</option>
                 <option value="(6)項ロ">(6)項ロ 老人福祉施設、有料老人ホーム、介護老人保健施設、救護施設、更生施設、児童福祉施設等</option>
                 <option value="(6)項ハ">(6)項ハ 高齢者福祉施設等</option>
@@ -152,14 +152,8 @@ function addComplexUse() {
                 <option value="(13)項ロ">(13)項ロ 飛行機又は回転翼航空機の格納庫</option>
                 <option value="(14)項">(14)項 倉庫</option>
                 <option value="(15)項">(15)項 前各項に該当しない事業場</option>
-                <option value="(16)項イ">(16)項イ 複合用途防火対象物（特定用途を含む）</option>
-                <option value="(16)項ロ">(16)項ロ 複合用途防火対象物（その他）</option>
-                <option value="(16の2)項">(16の2)項 地下街</option>
-                <option value="(16の3)項">(16の3)項 地下道に面する建築物</option>
                 <option value="(17)項">(17)項 重要文化財</option>
-                <option value="駐車場">駐車場</option>
-                <option value="道路">道路</option>
-                <option value="通信機器室">通信機器室</option>
+                <option value="一般住宅">一般住宅</option>
             </select>
         </div>
         <div class="form-group">
@@ -374,14 +368,8 @@ function createFloorItem(container, floorName, floorNumber, isBasement) {
                 <option value="(13)項ロ">(13)項ロ 飛行機又は回転翼航空機の格納庫</option>
                 <option value="(14)項">(14)項 倉庫</option>
                 <option value="(15)項">(15)項 前各項に該当しない事業場</option>
-                <option value="(16)項イ">(16)項イ 複合用途防火対象物（特定用途を含む）</option>
-                <option value="(16)項ロ">(16)項ロ 複合用途防火対象物（その他）</option>
-                <option value="(16の2)項">(16の2)項 地下街</option>
-                <option value="(16の3)項">(16の3)項 地下道に面する建築物</option>
                 <option value="(17)項">(17)項 重要文化財</option>
-                <option value="駐車場">駐車場</option>
-                <option value="道路">道路</option>
-                <option value="通信機器室">通信機器室</option>
+                <option value="一般住宅">一般住宅</option>
             </select>
         </div>
         <div class="checkbox-group">
