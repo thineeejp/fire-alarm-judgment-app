@@ -58,10 +58,6 @@ function updateForm() {
         createComplexUseSection();
     }
     
-    // (16)項イの場合の小規模特複フラグ
-    if (primaryUse === '(16)項イ') {
-        createSmallScaleComplexSection();
-    }
     
     // (6)ハの場合の宿泊フラグ
     if (primaryUse === '(6)項ハ') {
@@ -201,31 +197,6 @@ function removeComplexUse(id) {
     }
 }
 
-/**
- * 小規模特複フラグセクションを作成
- */
-function createSmallScaleComplexSection() {
-    const dynamicForm = document.getElementById('dynamic-form');
-    const section = document.createElement('div');
-    section.className = 'form-group';
-    section.innerHTML = `
-        <label class="form-label">小規模特定用途複合防火対象物に該当するか</label>
-        <div class="radio-group">
-            <label class="radio-label">
-                <input type="radio" name="small-scale-complex" value="true" class="radio-input">
-                <span class="radio-custom"></span>
-                はい
-            </label>
-            <label class="radio-label">
-                <input type="radio" name="small-scale-complex" value="false" class="radio-input" checked>
-                <span class="radio-custom"></span>
-                いいえ
-            </label>
-        </div>
-    `;
-    
-    dynamicForm.appendChild(section);
-}
 
 /**
  * 宿泊フラグセクションを作成
@@ -426,7 +397,6 @@ function collectData() {
         地下階数: parseInt(document.getElementById('basement-floors').value) || 0,
         指定可燃物倍数: parseFloat(document.getElementById('flammable-multiplier').value) || 0,
         nanaGouJoukenFlag: document.querySelector('input[name="item7-condition"]:checked')?.value === 'true',
-        is小規模特複フラグ: document.querySelector('input[name="small-scale-complex"]:checked')?.value === 'true',
         複合用途リスト: [],
         階情報リスト: []
     };
@@ -627,10 +597,6 @@ function createInputSummaryCard(建物情報) {
     summary += `地下階数: ${建物情報.地下階数}階\n`;
     summary += `指定可燃物倍数: ${建物情報.指定可燃物倍数}\n`;
     summary += `7号条件: ${建物情報.nanaGouJoukenFlag ? '該当する' : '該当しない'}\n`;
-    
-    if (建物情報.is小規模特複フラグ !== undefined) {
-        summary += `小規模特複: ${建物情報.is小規模特複フラグ ? 'はい' : 'いいえ'}\n`;
-    }
     
     if (建物情報.複合用途リスト.length > 0) {
         summary += '\n構成用途:\n';
