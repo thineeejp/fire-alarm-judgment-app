@@ -1,6 +1,6 @@
-// Service Worker for 自動火災報知設備 判定アプリ
-const CACHE_NAME = 'fire-alarm-app-v1.0.0';
-const STATIC_CACHE = 'fire-alarm-static-v1.0.0';
+// Service Worker for Min-Pack Check
+const CACHE_NAME = 'min-pack-check-v1.0.0';
+const STATIC_CACHE = 'min-pack-check-static-v1.0.0';
 
 // キャッシュするファイル一覧
 const CACHE_FILES = [
@@ -11,8 +11,8 @@ const CACHE_FILES = [
   './ui.js',
   './main.js',
   './manifest.json',
-  './icons/icon.svg',
-  './icons/favicon.svg',
+  './icons/logo_square.png',
+  './icons/logo_wide.png',
   // 外部リソース
   'https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap',
   'https://fonts.googleapis.com/icon?family=Material+Icons'
@@ -127,8 +127,8 @@ self.addEventListener('push', (event) => {
     const data = event.data.json();
     const options = {
       body: data.body || '新しい判定結果が利用可能です',
-      icon: '/icons/icon.svg',
-      badge: '/icons/favicon.svg',
+      icon: '/icons/logo_square.png',
+      badge: '/icons/logo_square.png',
       tag: 'fire-alarm-notification',
       requireInteraction: true,
       actions: [
@@ -144,7 +144,7 @@ self.addEventListener('push', (event) => {
     };
     
     event.waitUntil(
-      self.registration.showNotification(data.title || '火災報知設備判定アプリ', options)
+      self.registration.showNotification(data.title || 'Min-Pack Check', options)
     );
   }
 });

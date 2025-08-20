@@ -255,19 +255,63 @@ body {
     margin: 0 auto;
     position: relative;
     z-index: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .app-title {
-    font-size: var(--md-sys-typescale-headline-large-size);
-    font-weight: 700;
-    line-height: var(--md-sys-typescale-headline-large-line-height);
-    color: #ffffff;
-    margin-bottom: var(--spacing-sm);
+    /* レイアウト */
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: var(--spacing-sm);
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: var(--spacing-sm);
+    
+    /* ガラス風ボックス */
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 18px;
+    padding: 20px 30px 18px 30px;
+    background: rgba(255, 255, 255, 0.15);
+    
+    /* コンパクトな幅 */
+    width: fit-content;
+    max-width: 90%;
+    
+    /* シャドウ効果 */
+    box-shadow: 
+        0 12px 40px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        0 0 20px rgba(255, 255, 255, 0.1);
+}
+
+.title-main {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-md);
+    
+    /* フォント設定 */
+    font-size: 2.5rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: #ffffff;
+    
+    /* グロー効果 */
+    text-shadow: 
+        0 0 30px rgba(255, 255, 255, 0.5),
+        0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.title-text {
+    line-height: 1.1;
+}
+
+.header-logo {
+    font-size: 36px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 
 .app-title .material-icons {
@@ -276,11 +320,14 @@ body {
 }
 
 .app-subtitle {
-    font-size: var(--md-sys-typescale-body-medium-size);
+    font-size: 0.95rem;
     font-weight: 400;
-    line-height: var(--md-sys-typescale-body-medium-line-height);
-    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.4;
+    color: rgba(255, 255, 255, 0.95);
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    margin: 0;
+    max-width: 100%;
 }
 
 /* メインコンテンツ */
@@ -910,18 +957,47 @@ body {
     }
 }
 
+/* タブレット（768px-1023px） */
+@media (max-width: 1023px) {
+    .app-title {
+        padding: 18px 25px 16px 25px;
+        max-width: 95%;
+    }
+    
+    .title-main {
+        font-size: 2.2rem;
+    }
+    
+    .app-subtitle {
+        font-size: 0.9rem;
+    }
+}
+
 @media (max-width: 768px) {
     .app-header {
         padding: var(--spacing-lg) var(--spacing-md);
     }
     
+    /* モバイル（767px以下） */
     .app-title {
-        font-size: 24px;
+        padding: 15px 20px 14px 20px;
+        margin: 0 10px; /* 画面端からの余白確保 */
+        max-width: 95%;
+        gap: var(--spacing-xs);
+    }
+    
+    .title-main {
+        font-size: 1.8rem;
         flex-direction: column;
         gap: var(--spacing-xs);
     }
     
-    .app-title .material-icons {
+    .app-subtitle {
+        font-size: 0.85rem;
+    }
+    
+    .app-title .material-icons,
+    .header-logo {
         font-size: 32px;
     }
     
@@ -987,10 +1063,21 @@ body {
     }
     
     .app-title {
-        font-size: 20px;
+        padding: 12px 15px 11px 15px;
+        margin: 0 5px; /* より小さい画面での余白 */
+        max-width: 98%;
     }
     
-    .app-title .material-icons {
+    .title-main {
+        font-size: 1.5rem;
+    }
+    
+    .app-subtitle {
+        font-size: 0.8rem;
+    }
+    
+    .app-title .material-icons,
+    .header-logo {
         font-size: 28px;
     }
     
