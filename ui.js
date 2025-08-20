@@ -47,9 +47,9 @@ function init() {
             
             // ボタンのテキストも変更
             if (conditionsList.classList.contains('hidden')) {
-                toggleButton.textContent = '▽ 特殊条件を確認する';
+                toggleButton.textContent = '特殊要件を確認する';
             } else {
-                toggleButton.textContent = '△ 特殊条件を閉じる';
+                toggleButton.textContent = '特殊要件を閉じる';
             }
         }
     });
@@ -192,7 +192,14 @@ function collectData() {
     const 建物情報 = {
         主用途: document.getElementById('primary-use').value,
         延べ面積: parseFloat(document.getElementById('total-area').value) || 0,
-        nanaGouJoukenFlag: document.querySelector('input[name="item7-condition"]:checked')?.value === 'true',
+        nanaGouJoukenFlag: (() => {
+            const checked = document.querySelector('input[name="item7-condition"]:checked');
+            return checked ? checked.value === 'true' : null;
+        })(),
+        specialConditionsFlag: (() => {
+            const checked = document.querySelector('input[name="special-conditions"]:checked');
+            return checked ? checked.value === 'true' : null;
+        })(),
         複合用途リスト: []
     };
     
@@ -390,6 +397,12 @@ function handleFormSubmit(event) {
     try {
         const 建物情報 = collectData();
         
+        // 特殊要件チェック（最優先）
+        if (建物情報.specialConditionsFlag === true) {
+            showSpecialConditionsMessage();
+            return; // 通常判定をスキップ
+        }
+        
         // SOW対応: バリデーション用の必要プロパティを動的に追加
         const 判定用建物情報 = {
             ...建物情報,
@@ -399,7 +412,7 @@ function handleFormSubmit(event) {
             階情報リスト: [] // バリデーション用空配列
         };
         
-        // バリデーション
+        // バリデーション（特殊要件が非該当の場合のみ）
         const validation = validateBuildingInfo(判定用建物情報);
         if (!validation.isValid) {
             showValidationErrors(validation.errors);
@@ -432,6 +445,38 @@ function showError(message) {
     if (window.appConfig && window.appConfig.debug) {
         alert(message);
     }
+}
+
+/**
+ * 特殊要件メッセージを表示
+ */
+function showSpecialConditionsMessage() {
+    const resultSection = document.getElementById('result-section');
+    const resultContent = document.getElementById('result-content');
+    
+    resultContent.innerHTML = '';
+    
+    // 特殊要件メッセージカード
+    const messageCard = document.createElement('div');
+    messageCard.className = 'result-card warning';
+    messageCard.innerHTML = `
+        <div class="result-title">
+            <span class="material-icons">warning</span>
+            簡易判定対象外
+        </div>
+        <div class="result-description">
+            特殊要件に該当する場合、本ツールでの簡易判定は行えません。個別検討が必要です。
+        </div>
+        <div class="result-details">
+            詳細については所轄消防署にお問い合わせください。
+        </div>
+    `;
+    
+    resultContent.appendChild(messageCard);
+    
+    // 結果セクションを表示
+    resultSection.classList.remove('hidden');
+    resultSection.scrollIntoView({ behavior: 'smooth' });
 }
 
 /**

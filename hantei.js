@@ -411,6 +411,16 @@ function validateBuildingInfo(建物情報) {
         errors.push("指定可燃物倍数は0以上の値を入力してください。");
     }
     
+    // 7号条件の必須選択チェック
+    if (建物情報.nanaGouJoukenFlag === undefined || 建物情報.nanaGouJoukenFlag === null) {
+        errors.push("7号条件（直通階段）について選択してください。");
+    }
+    
+    // 特殊要件の必須選択チェック
+    if (建物情報.specialConditionsFlag === undefined || 建物情報.specialConditionsFlag === null) {
+        errors.push("特殊要件について選択してください。");
+    }
+    
     // 複合用途のチェック
     if (建物情報.主用途 === "(16)項イ" || 建物情報.主用途 === "(16)項ロ" || 建物情報.主用途 === "(16の二)項") {
         if (!建物情報.複合用途リスト || 建物情報.複合用途リスト.length === 0) {

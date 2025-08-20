@@ -1350,7 +1350,7 @@ body {
     border-radius: var(--radius-lg, 16px);
     padding: var(--spacing-lg, 24px);
     margin-top: var(--spacing-lg, 24px);
-    border: 1px solid var(--neutral-300, #d0d0d0);
+    border: none;
 }
 
 .complex-use-title {
@@ -1363,7 +1363,7 @@ body {
 /* 個別用途の子ブロックスタイル */
 .use-item {
     background-color: #ffffff; /* 白 */
-    border: 1px solid var(--neutral-300, #d0d0d0);
+    border: none;
     border-radius: var(--radius-md, 12px);
     padding: var(--spacing-md, 16px);
     margin-bottom: var(--spacing-md, 16px);
@@ -1418,26 +1418,26 @@ body {
 
 /* 追加ボタンのスタイル（控えめに） */
 .add-use-btn {
-    background-color: var(--accent-100, #d6f2ea);
-    color: var(--accent-800, #325c4c);
-    border: 1px solid var(--accent-300, #93d8c4);
+    background-color: var(--primary-100, #d6e3ee);
+    color: var(--primary-700, #3c6894);
+    border: none;
     border-radius: var(--radius-md, 12px);
     padding: var(--spacing-sm, 12px) var(--spacing-md, 16px);
-    width: 100%; /* 親コンテナの幅に合わせる */
+    width: auto;
     margin-top: var(--spacing-md, 16px);
     cursor: pointer;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     gap: var(--spacing-xs, 8px);
     font-size: var(--md-sys-typescale-label-large-size, 14px);
     font-weight: var(--md-sys-typescale-label-large-weight, 500);
     transition: all 0.2s ease;
+    align-self: flex-start;
 }
 
 .add-use-btn:hover {
-    background-color: var(--accent-200, #b8e7d8);
-    border-color: var(--accent-400, #72c7b0);
+    background-color: var(--primary-200, #b8d0e1);
 }
 
 .add-use-btn .material-icons {
@@ -1446,8 +1446,8 @@ body {
 
 /* 固定項目のスタイル */
 .use-item-fixed {
-    background-color: var(--primary-50, #f0f4f7) !important;
-    border-color: var(--primary-200, #b8d0e1) !important;
+    background-color: #ffffff !important;
+    border: none !important;
 }
 
 .fixed-indicator {
@@ -1466,11 +1466,11 @@ body {
 .fixed-use-display {
     background-color: var(--neutral-100, #f5f5f5);
     border: 1px solid var(--neutral-300, #d0d0d0);
-    border-radius: var(--radius-sm, 8px);
-    padding: var(--spacing-sm, 12px);
-    font-size: var(--md-sys-typescale-body-medium-size, 14px);
+    border-radius: var(--radius-lg, 12px);
+    padding: var(--spacing-md, 16px) var(--spacing-lg, 24px);
+    font-size: var(--md-sys-typescale-body-large-size, 16px);
     color: var(--md-sys-color-on-surface, #1c1b1f);
-    min-height: 40px;
+    min-height: 52px;
     display: flex;
     align-items: center;
 }
@@ -1494,4 +1494,60 @@ body {
 .use-item .form-input {
     width: 100%;
     border-radius: var(--radius-sm, 8px);
+}
+
+/* ========================
+   特殊要件設問のスタイル
+   ======================== */
+
+/* 目立たない確認ボタン */
+.help-button {
+    background: none;
+    border: none;
+    color: var(--md-sys-color-on-surface-variant, #616161);
+    font-size: 12px;
+    text-decoration: underline;
+    cursor: pointer;
+    margin-left: 8px;
+    opacity: 0.7;
+    padding: 2px 4px;
+    border-radius: var(--radius-xs, 2px);
+    transition: opacity 0.2s ease;
+}
+
+.help-button:hover {
+    opacity: 1;
+    background-color: var(--neutral-100, #f5f5f5);
+}
+
+/* 特殊条件リスト */
+.special-conditions-list {
+    margin-top: var(--spacing-sm, 12px);
+    padding: var(--spacing-md, 16px);
+    background-color: var(--neutral-100, #f5f5f5);
+    border-radius: var(--radius-md, 12px);
+    font-size: 14px;
+    border: 1px solid var(--neutral-200, #eeeeee);
+}
+
+.special-conditions-list h4 {
+    font-size: 16px;
+    margin-bottom: var(--spacing-sm, 12px);
+    color: var(--md-sys-color-on-surface, #1c1b1f);
+}
+
+.special-conditions-list p {
+    margin-bottom: var(--spacing-sm, 12px);
+    color: var(--md-sys-color-on-surface-variant, #616161);
+}
+
+.special-conditions-list ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.special-conditions-list li {
+    margin-bottom: 4px;
+    color: var(--md-sys-color-on-surface, #1c1b1f);
+    line-height: 1.4;
 }
