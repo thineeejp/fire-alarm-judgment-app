@@ -7,7 +7,6 @@
 // グローバル変数
 let currentBuildingInfo = null;
 let complexUseCounter = 0;
-let floorInfoCounter = 0;
 
 /**
  * 画面初期化とイベントリスナー設定
@@ -30,11 +29,30 @@ function init() {
     // ヘルプアイコンのイベントリスナー
     document.addEventListener('click', handleHelpClick);
     
-    // 階数変更時のイベントリスナー
-    const groundFloorsInput = document.getElementById('ground-floors');
-    const basementFloorsInput = document.getElementById('basement-floors');
-    groundFloorsInput.addEventListener('change', updateFloorInfo);
-    basementFloorsInput.addEventListener('change', updateFloorInfo);
+    
+    // 用途追加ボタンのイベントリスナー（イベント委譲を使用）
+    document.addEventListener('click', function(e) {
+        if (e.target && e.target.id === 'add-complex-use') {
+            addComplexUse();
+        }
+    });
+    
+    // 特殊条件の表示/非表示制御
+    document.getElementById('toggle-special-conditions')?.addEventListener('click', function() {
+        const conditionsList = document.getElementById('special-conditions-list');
+        const toggleButton = document.getElementById('toggle-special-conditions');
+        
+        if (conditionsList && toggleButton) {
+            conditionsList.classList.toggle('hidden');
+            
+            // ボタンのテキストも変更
+            if (conditionsList.classList.contains('hidden')) {
+                toggleButton.textContent = '▽ 特殊条件を確認する';
+            } else {
+                toggleButton.textContent = '△ 特殊条件を閉じる';
+            }
+        }
+    });
     
     // 初期化
     updateForm();
@@ -46,345 +64,126 @@ function init() {
  */
 function updateForm() {
     const primaryUse = document.getElementById('primary-use').value;
-    const dynamicForm = document.getElementById('dynamic-form');
+    const complexUseSection = document.getElementById('complex-use-section');
+    const complexUseList = document.getElementById('complex-use-list');
     
-    // 動的フォームをクリア
-    dynamicForm.innerHTML = '';
+    // 用途リストをクリア
+    if (complexUseList) {
+        complexUseList.innerHTML = '';
+    }
     complexUseCounter = 0;
-    floorInfoCounter = 0;
     
-    // 複合用途の場合の処理
-    if (primaryUse === '(16)項イ' || primaryUse === '(16)項ロ' || primaryUse === '(16の2)項') {
-        createComplexUseSection();
+    if (primaryUse === '(16)項イ') {
+        // 構成用途セクションを表示
+        if (complexUseSection) complexUseSection.classList.remove('hidden');
+        // スマートデフォルト: 自動的に(5)項イを1項目めとして追加
+        addComplexUse(true);
+    } else {
+        // 構成用途セクションを非表示
+        if (complexUseSection) complexUseSection.classList.add('hidden');
     }
-    
-    
-    // (6)ハの場合の宿泊フラグ
-    if (primaryUse === '(6)項ハ') {
-        createAccommodationSection();
-    }
-    
-    // (16の三)項の場合の特定用途合計面積
-    if (primaryUse === '(16の三)項') {
-        createSpecificUseTotalAreaSection();
-    }
-    
-    // 階情報セクション
-    updateFloorInfo();
 }
 
 /**
- * 複合用途セクションを作成
+ * 複合用途項目を追加（SOW 12.0準拠：子ブロック生成）
+ * @param {boolean} isPreset - プリセット値設定フラグ（スマートデフォルト用）
  */
-function createComplexUseSection() {
-    const dynamicForm = document.getElementById('dynamic-form');
-    const section = document.createElement('div');
-    section.className = 'complex-use-section';
-    section.innerHTML = `
-        <h3 class="complex-use-title">構成用途</h3>
-        <div id="complex-use-list" class="complex-use-list"></div>
-        <button type="button" id="add-complex-use" class="add-use-btn">
-            <span class="material-icons">add</span>
-            構成用途を追加
-        </button>
-    `;
-    
-    dynamicForm.appendChild(section);
-    
-    // 初期用途を1つ追加
-    addComplexUse();
-    
-    // 追加ボタンのイベントリスナー
-    document.getElementById('add-complex-use').addEventListener('click', addComplexUse);
-}
+function addComplexUse(isPreset = false) {
+    const container = document.getElementById('complex-use-list');
+    if (!container) return;
 
-/**
- * 複合用途項目を追加
- */
-function addComplexUse() {
-    const list = document.getElementById('complex-use-list');
-    const id = ++complexUseCounter;
+    complexUseCounter++;
+    const id = complexUseCounter;
     
+    // SOW 12.0: 子ブロック全体を生成（構成用途１の固定化対応）
     const item = document.createElement('div');
-    item.className = 'use-item';
-    item.id = `complex-use-${id}`;
-    item.innerHTML = `
-        <div class="use-item-header">
-            <span class="use-item-title">構成用途 ${id}</span>
-            ${id > 1 ? `<button type="button" class="remove-use-btn" onclick="removeComplexUse(${id})">
-                <span class="material-icons">delete</span>
-            </button>` : ''}
-        </div>
-        <div class="form-group">
-            <label for="complex-use-type-${id}" class="form-label">用途</label>
-            <select id="complex-use-type-${id}" name="complex-use-type-${id}" class="form-select" required>
-                <option value="">選択してください</option>
-                <option value="(1)項イ">(1)項イ 劇場、映画館、演芸場又は観覧場</option>
-                <option value="(1)項ロ">(1)項ロ 公会堂又は集会場</option>
-                <option value="(2)項イ">(2)項イ キャバレー、カフェー、ナイトクラブその他これらに類するもの</option>
-                <option value="(2)項ロ">(2)項ロ 遊技場又はダンスホール</option>
-                <option value="(2)項ハ">(2)項ハ 風俗営業等の規制及び業務の適正化等に関する法律に規定する性風俗関連特殊営業を営む店舗その他これに類するもの</option>
-                <option value="(3)項イ">(3)項イ 待合、料理店その他これらに類するもの</option>
-                <option value="(3)項ロ">(3)項ロ 飲食店</option>
-                <option value="(4)項">(4)項 百貨店、マーケットその他の物品販売業を営む店舗又は展示場</option>
-                <option value="(5)項イ">(5)項イ 旅館、ホテル、宿泊所その他これらに類するもの</option>
-                <option value="(5)項ロ">(5)項ロ 寄宿舎、下宿又は共同住宅</option>
-                <option value="(6)項イ(1)">(6)項イ(1) 病院</option>
-                <option value="(6)項イ(2)">(6)項イ(2) 有床診療所・助産所</option>
-                <option value="(6)項イ(3)">(6)項イ(3) 上記以外の病物等(1-3床)</option>
-                <option value="(6)項イ(4)">(6)項イ(4) 無床診療所・無床助産所</option>
-                <option value="(6)項ロ">(6)項ロ 老人福祉施設、有料老人ホーム、介護老人保健施設、救護施設、更生施設、児童福祉施設等</option>
-                <option value="(6)項ハ">(6)項ハ 高齢者福祉施設等</option>
-                <option value="(6)項ニ">(6)項ニ 幼稚園又は特別支援学校</option>
-                <option value="(7)項">(7)項 小学校、中学校、高等学校、中等教育学校、高等専門学校、大学、専修学校、各種学校その他これらに類するもの</option>
-                <option value="(8)項">(8)項 図書館、博物館、美術館その他これらに類するもの</option>
-                <option value="(9)項イ">(9)項イ 公衆浴場のうち、蒸気浴場、熱気浴場その他これらに類するもの</option>
-                <option value="(9)項ロ">(9)項ロ イに掲げる公衆浴場以外の公衆浴場</option>
-                <option value="(10)項">(10)項 車両の停車場又は船舶若しくは航空機の発着場</option>
-                <option value="(11)項">(11)項 神社、寺院、教会その他これらに類するもの</option>
-                <option value="(12)項イ">(12)項イ 工場又は作業場</option>
-                <option value="(12)項ロ">(12)項ロ 映画スタジオ又はテレビスタジオ</option>
-                <option value="(13)項イ">(13)項イ 自動車車庫又は駐車場</option>
-                <option value="(13)項ロ">(13)項ロ 飛行機又は回転翼航空機の格納庫</option>
-                <option value="(14)項">(14)項 倉庫</option>
-                <option value="(15)項">(15)項 前各項に該当しない事業場</option>
-                <option value="(17)項">(17)項 重要文化財</option>
-                <option value="一般住宅">一般住宅</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="complex-use-area-${id}" class="form-label">面積（㎡）</label>
-            <input type="number" id="complex-use-area-${id}" name="complex-use-area-${id}" class="form-input" min="0" step="0.01" required>
-        </div>
-        <div id="complex-use-accommodation-${id}" class="form-group hidden">
-            <label class="form-label">宿泊を伴うか</label>
-            <div class="radio-group">
-                <label class="radio-label">
-                    <input type="radio" name="complex-use-accommodation-${id}" value="true" class="radio-input">
-                    <span class="radio-custom"></span>
-                    はい
-                </label>
-                <label class="radio-label">
-                    <input type="radio" name="complex-use-accommodation-${id}" value="false" class="radio-input">
-                    <span class="radio-custom"></span>
-                    いいえ
-                </label>
+    item.className = isPreset && complexUseCounter === 1 ? 'use-item use-item-fixed' : 'use-item';
+    item.id = `use-item-${id}`;
+    
+    if (isPreset && complexUseCounter === 1) {
+        // 構成用途１：固定テンプレート（削除不可、用途変更不可）
+        item.innerHTML = `
+            <div class="use-item-header">
+                <span class="use-item-title">構成用途 ${id}</span>
             </div>
-        </div>
-    `;
-    
-    list.appendChild(item);
-    
-    // (6)ハ選択時の宿泊フラグ表示制御
-    const useTypeSelect = document.getElementById(`complex-use-type-${id}`);
-    useTypeSelect.addEventListener('change', function() {
-        const accommodationDiv = document.getElementById(`complex-use-accommodation-${id}`);
-        if (this.value === '(6)項ハ') {
-            accommodationDiv.classList.remove('hidden');
-        } else {
-            accommodationDiv.classList.add('hidden');
-        }
-    });
-}
-
-/**
- * 複合用途項目を削除
- */
-function removeComplexUse(id) {
-    const item = document.getElementById(`complex-use-${id}`);
-    if (item) {
-        item.remove();
-    }
-}
-
-
-/**
- * 宿泊フラグセクションを作成
- */
-function createAccommodationSection() {
-    const dynamicForm = document.getElementById('dynamic-form');
-    const section = document.createElement('div');
-    section.className = 'form-group';
-    section.innerHTML = `
-        <label class="form-label">宿泊を伴うか</label>
-        <div class="radio-group">
-            <label class="radio-label">
-                <input type="radio" name="accommodation" value="true" class="radio-input">
-                <span class="radio-custom"></span>
-                はい
-            </label>
-            <label class="radio-label">
-                <input type="radio" name="accommodation" value="false" class="radio-input" checked>
-                <span class="radio-custom"></span>
-                いいえ
-            </label>
-        </div>
-    `;
-    
-    dynamicForm.appendChild(section);
-}
-
-/**
- * 特定用途合計面積セクションを作成
- */
-function createSpecificUseTotalAreaSection() {
-    const dynamicForm = document.getElementById('dynamic-form');
-    const section = document.createElement('div');
-    section.className = 'form-group';
-    section.innerHTML = `
-        <label for="specific-use-total-area" class="form-label">特定用途合計面積（㎡）</label>
-        <input type="number" id="specific-use-total-area" name="specific-use-total-area" class="form-input" min="0" step="0.01" value="0">
-    `;
-    
-    dynamicForm.appendChild(section);
-}
-
-/**
- * 階情報セクションを更新
- */
-function updateFloorInfo() {
-    const groundFloors = parseInt(document.getElementById('ground-floors').value) || 0;
-    const basementFloors = parseInt(document.getElementById('basement-floors').value) || 0;
-    
-    if (groundFloors <= 0) return;
-    
-    // 既存の階情報セクションを削除
-    const existingSection = document.querySelector('.floor-info-section');
-    if (existingSection) {
-        existingSection.remove();
-    }
-    
-    const dynamicForm = document.getElementById('dynamic-form');
-    const section = document.createElement('div');
-    section.className = 'floor-info-section';
-    section.innerHTML = `
-        <div class="floor-info-header">
-            <h3 class="floor-info-title">階別情報（任意）</h3>
-            <div class="floor-info-toggle-container">
-                <button type="button" id="floor-info-toggle" class="toggle-button" onclick="toggleFloorInfoSection()">
-                    <span class="material-icons">expand_more</span>
-                    詳細な部分判定を行う
-                </button>
-                <button type="button" class="help-icon" onclick="showFloorInfoHelp()">
-                    <span class="material-icons">help_outline</span>
+            <div class="form-group">
+                <label class="form-label">用途</label>
+                <div class="fixed-use-display">(5)項イ 旅館、ホテル、宿泊所その他これらに類するもの</div>
+                <input type="hidden" name="complex-use-type" value="(5)項イ">
+            </div>
+            <div class="form-group">
+                <label for="complex-use-area-${id}" class="form-label">面積（㎡）</label>
+                <input type="number" id="complex-use-area-${id}" name="complex-use-area" class="form-input" min="0" step="0.01" required>
+            </div>
+        `;
+    } else {
+        // 構成用途２以降：通常テンプレート（削除可、用途変更可）
+        item.innerHTML = `
+            <div class="use-item-header">
+                <span class="use-item-title">構成用途 ${id}</span>
+                <button type="button" class="remove-use-btn" onclick="removeComplexUse(${id})">
+                    <span class="material-icons">delete</span>
                 </button>
             </div>
-        </div>
-        <div id="floor-info-content" class="floor-info-content hidden">
-            <div id="floor-info-list" class="floor-info-list"></div>
-        </div>
-    `;
-    
-    dynamicForm.appendChild(section);
-    
-    const list = document.getElementById('floor-info-list');
-    
-    // 地下階の生成
-    for (let i = basementFloors; i >= 1; i--) {
-        createFloorItem(list, `B${i}F`, -i, true);
+            <div class="form-group">
+                <label for="complex-use-type-${id}" class="form-label">用途</label>
+                <select id="complex-use-type-${id}" name="complex-use-type" class="form-select" required>
+                    <option value="">選択してください</option>
+                    <option value="(1)項イ">(1)項イ 劇場、映画館、演芸場、観覧場</option>
+                    <option value="(1)項ロ">(1)項ロ 公会堂、集会場</option>
+                    <option value="(2)項イ">(2)項イ キャバレー、カフェー、ナイトクラブ</option>
+                    <option value="(2)項ロ">(2)項ロ 遊技場、ダンスホール</option>
+                    <option value="(2)項ハ">(2)項ハ 性風俗特殊営業店舗</option>
+                    <option value="(3)項イ">(3)項イ 待合、料理店</option>
+                    <option value="(3)項ロ">(3)項ロ 飲食店</option>
+                    <option value="(4)項">(4)項 百貨店、マーケット、物品販売業店舗</option>
+                    <option value="(5)項イ">(5)項イ 旅館、ホテル、宿泊所その他これらに類するもの</option>
+                    <option value="(5)項ロ">(5)項ロ 寄宿舎、下宿、共同住宅</option>
+                    <option value="(6)項イ(1)">(6)項イ(1) 病院、診療所、助産所</option>
+                    <option value="(6)項イ(2)">(6)項イ(2) 老人デイサービスセンター等</option>
+                    <option value="(6)項イ(3)">(6)項イ(3) 老人短期入所施設等</option>
+                    <option value="(6)項イ(4)">(6)項イ(4) 老人福祉センター等</option>
+                    <option value="(6)項ロ">(6)項ロ 幼稚園、小学校等</option>
+                    <option value="(6)項ハ（宿泊あり）">(6)項ハ 図書館、博物館等（宿泊あり）</option>
+                    <option value="(6)項ハ（宿泊なし）">(6)項ハ 図書館、博物館等（宿泊なし）</option>
+                    <option value="(6)項ニ">(6)項ニ 蒸気浴場、熱気浴場</option>
+                    <option value="(7)項">(7)項 公衆浴場</option>
+                    <option value="(8)項">(8)項 工場、作業場</option>
+                    <option value="(9)項イ">(9)項イ 車両の停車場、船舶・航空機の発着場</option>
+                    <option value="(9)項ロ">(9)項ロ 神社、寺院、教会</option>
+                    <option value="(10)項">(10)項 事務所</option>
+                    <option value="(11)項">(11)項 放送スタジオ、電話交換所</option>
+                    <option value="(12)項イ">(12)項イ 自動車車庫、駐車場</option>
+                    <option value="(12)項ロ">(12)項ロ 飛行機又は回転翼航空機の格納庫</option>
+                    <option value="(13)項イ">(13)項イ 倉庫</option>
+                    <option value="(13)項ロ">(13)項ロ 危険物の貯蔵場</option>
+                    <option value="(14)項">(14)項 前各項に該当しない事業場</option>
+                    <option value="(15)項">(15)項 建築物の地階</option>
+                    <option value="一般住宅">一般住宅</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="complex-use-area-${id}" class="form-label">面積（㎡）</label>
+                <input type="number" id="complex-use-area-${id}" name="complex-use-area" class="form-input" min="0" step="0.01" required>
+            </div>
+        `;
     }
     
-    // 地上階の生成
-    for (let i = 1; i <= groundFloors; i++) {
-        createFloorItem(list, `${i}F`, i, false);
-    }
-}
-
-/**
- * 階情報項目を作成
- */
-function createFloorItem(container, floorName, floorNumber, isBasement) {
-    const id = ++floorInfoCounter;
-    const item = document.createElement('div');
-    item.className = 'floor-item';
-    item.dataset.floorName = floorName;
-    item.dataset.floorNumber = floorNumber;
-    item.dataset.isBasement = isBasement;
-    item.innerHTML = `
-        <div class="floor-item-title">${floorName}</div>
-        <div class="form-group">
-            <label for="floor-area-${id}" class="form-label">床面積（㎡）</label>
-            <input type="number" id="floor-area-${id}" name="floor-area-${id}" class="form-input" min="0" step="0.01" value="0">
-        </div>
-        <div class="form-group">
-            <label for="floor-use-${id}" class="form-label">用途</label>
-            <select id="floor-use-${id}" name="floor-use-${id}" class="form-select">
-                <option value="">選択してください</option>
-                <option value="(1)項イ">(1)項イ 劇場、映画館、演芸場又は観覧場</option>
-                <option value="(1)項ロ">(1)項ロ 公会堂又は集会場</option>
-                <option value="(2)項イ">(2)項イ キャバレー、カフェー、ナイトクラブその他これらに類するもの</option>
-                <option value="(2)項ロ">(2)項ロ 遊技場又はダンスホール</option>
-                <option value="(2)項ハ">(2)項ハ 風俗営業等の規制及び業務の適正化等に関する法律に規定する性風俗関連特殊営業を営む店舗その他これに類するもの</option>
-                <option value="(3)項イ">(3)項イ 待合、料理店その他これらに類するもの</option>
-                <option value="(3)項ロ">(3)項ロ 飲食店</option>
-                <option value="(4)項">(4)項 百貨店、マーケットその他の物品販売業を営む店舗又は展示場</option>
-                <option value="(5)項イ">(5)項イ 旅館、ホテル、宿泊所その他これらに類するもの</option>
-                <option value="(5)項ロ">(5)項ロ 寄宿舎、下宿又は共同住宅</option>
-                <option value="(6)項イ(1)">(6)項イ(1) 病院</option>
-                <option value="(6)項イ(2)">(6)項イ(2) 有床診療所・助産所</option>
-                <option value="(6)項イ(3)">(6)項イ(3) 上記以外の病院等(1-3床)</option>
-                <option value="(6)項イ(4)">(6)項イ(4) 無床診療所・無床助産所</option>
-                <option value="(6)項ロ">(6)項ロ 老人福祉施設、有料老人ホーム、介護老人保健施設、救護施設、更生施設、児童福祉施設等</option>
-                <option value="(6)項ハ">(6)項ハ 高齢者福祉施設等</option>
-                <option value="(6)項ニ">(6)項ニ 幼稚園又は特別支援学校</option>
-                <option value="(7)項">(7)項 小学校、中学校、高等学校、中等教育学校、高等専門学校、大学、専修学校、各種学校その他これらに類するもの</option>
-                <option value="(8)項">(8)項 図書館、博物館、美術館その他これらに類するもの</option>
-                <option value="(9)項イ">(9)項イ 公衆浴場のうち、蒸気浴場、熱気浴場その他これらに類するもの</option>
-                <option value="(9)項ロ">(9)項ロ イに掲げる公衆浴場以外の公衆浴場</option>
-                <option value="(10)項">(10)項 車両の停車場又は船舶若しくは航空機の発着場</option>
-                <option value="(11)項">(11)項 神社、寺院、教会その他これらに類するもの</option>
-                <option value="(12)項イ">(12)項イ 工場又は作業場</option>
-                <option value="(12)項ロ">(12)項ロ 映画スタジオ又はテレビスタジオ</option>
-                <option value="(13)項イ">(13)項イ 自動車車庫又は駐車場</option>
-                <option value="(13)項ロ">(13)項ロ 飛行機又は回転翼航空機の格納庫</option>
-                <option value="(14)項">(14)項 倉庫</option>
-                <option value="(15)項">(15)項 前各項に該当しない事業場</option>
-                <option value="(17)項">(17)項 重要文化財</option>
-                <option value="一般住宅">一般住宅</option>
-            </select>
-        </div>
-        <div class="checkbox-group">
-            <label class="checkbox-label">
-                <input type="checkbox" id="floor-windowless-${id}" name="floor-windowless-${id}" class="checkbox-input">
-                <span class="checkbox-custom"></span>
-                無窓階
-            </label>
-            <label class="checkbox-label">
-                <input type="checkbox" id="floor-rooftop-${id}" name="floor-rooftop-${id}" class="checkbox-input">
-                <span class="checkbox-custom"></span>
-                屋上
-            </label>
-            <label class="checkbox-label">
-                <input type="checkbox" id="floor-simultaneous-exit-${id}" name="floor-simultaneous-exit-${id}" class="checkbox-input" checked>
-                <span class="checkbox-custom"></span>
-                同時退出可能
-            </label>
-        </div>
-        <div class="form-group">
-            <label for="floor-specific-area-${id}" class="form-label">特定用途部分の面積（㎡）</label>
-            <input type="number" id="floor-specific-area-${id}" name="floor-specific-area-${id}" class="form-input" min="0" step="0.01" value="0">
-        </div>
-        <div class="form-group">
-            <label for="floor-specific-use-${id}" class="form-label">特定用途</label>
-            <select id="floor-specific-use-${id}" name="floor-specific-use-${id}" class="form-select">
-                <option value="">選択してください</option>
-                <option value="(2)項イ">(2)項イ キャバレー、カフェー、ナイトクラブその他これらに類するもの</option>
-                <option value="(2)項ロ">(2)項ロ 遊技場又はダンスホール</option>
-                <option value="(2)項ハ">(2)項ハ 風俗営業等の規制及び業務の適正化等に関する法律に規定する性風俗関連特殊営業を営む店舗その他これに類するもの</option>
-                <option value="(3)項イ">(3)項イ 待合、料理店その他これらに類するもの</option>
-                <option value="(3)項ロ">(3)項ロ 飲食店</option>
-                <option value="(16)項イ">(16)項イ 複合用途防火対象物（特定用途を含む）</option>
-            </select>
-        </div>
-    `;
-    
-    // 階情報を内部的に保存
-    item.dataset.floorName = floorName;
-    item.dataset.floorNumber = floorNumber;
-    item.dataset.isBasement = isBasement;
-    
+    // 生成した item を complex-use-list に append
     container.appendChild(item);
 }
+
+/**
+ * 複合用途項目を削除（SOW 12.0準拠：IDベースで削除）
+ */
+function removeComplexUse(id) {
+    const useItem = document.getElementById(`use-item-${id}`);
+    if (useItem) {
+        useItem.remove();
+    }
+}
+
+
 
 /**
  * フォームデータを収集して建物情報オブジェクトを生成
@@ -393,91 +192,54 @@ function collectData() {
     const 建物情報 = {
         主用途: document.getElementById('primary-use').value,
         延べ面積: parseFloat(document.getElementById('total-area').value) || 0,
-        地上階数: parseInt(document.getElementById('ground-floors').value) || 0,
-        地下階数: parseInt(document.getElementById('basement-floors').value) || 0,
-        指定可燃物倍数: parseFloat(document.getElementById('flammable-multiplier').value) || 0,
         nanaGouJoukenFlag: document.querySelector('input[name="item7-condition"]:checked')?.value === 'true',
-        複合用途リスト: [],
-        階情報リスト: []
+        複合用途リスト: []
     };
     
-    // 宿泊フラグの取得（(6)ハの場合）
-    if (建物情報.主用途 === '(6)項ハ') {
-        const accommodationRadio = document.querySelector('input[name="accommodation"]:checked');
-        if (accommodationRadio) {
-            建物情報.宿泊フラグ = accommodationRadio.value === 'true';
-            // 複合用途リストに単一用途として追加
-            建物情報.複合用途リスト.push({
-                用途: '(6)項ハ',
-                面積: 建物情報.延べ面積,
-                入居宿泊フラグ: 建物情報.宿泊フラグ
-            });
-        }
-    }
-    
-    // 特定用途合計面積の取得（(16の三)項の場合）
-    if (建物情報.主用途 === '(16の三)項') {
-        const specificAreaInput = document.getElementById('specific-use-total-area');
-        if (specificAreaInput) {
-            建物情報.特定用途合計面積 = parseFloat(specificAreaInput.value) || 0;
-        }
-    }
-    
-    // 複合用途の収集
-    const complexUseItems = document.querySelectorAll('.use-item');
-    complexUseItems.forEach(item => {
-        const id = item.id.split('-')[2];
-        const useType = document.getElementById(`complex-use-type-${id}`)?.value;
-        const area = parseFloat(document.getElementById(`complex-use-area-${id}`)?.value) || 0;
-        
-        if (useType && area > 0) {
-            const useItem = {
-                用途: useType,
-                面積: area,
-                入居宿泊フラグ: null
-            };
+    // 複合用途のデータを収集（SOW 12.0対応：.use-item構造）
+    if (建物情報.主用途 === "(16)項イ") {
+        // 構成用途を収集（固定項目と通常項目の両方に対応）
+        const complexUses = document.querySelectorAll('#complex-use-list .use-item');
+        complexUses.forEach(useDiv => {
+            // 固定項目（構成用途１）の場合はhidden inputから、通常項目はselectから取得
+            const 用途 = useDiv.querySelector('input[name="complex-use-type"]')?.value || 
+                        useDiv.querySelector('select[name="complex-use-type"]')?.value;
+            const 面積 = parseFloat(useDiv.querySelector('input[name="complex-use-area"]')?.value || 0);
             
-            // (6)ハの場合の宿泊フラグ
-            if (useType === '(6)項ハ') {
-                const accommodationRadio = document.querySelector(`input[name="complex-use-accommodation-${id}"]:checked`);
-                if (accommodationRadio) {
-                    useItem.入居宿泊フラグ = accommodationRadio.value === 'true';
+            if (用途 && 面積 > 0) {
+                // (6)項ハの宿泊有無をプルダウンから判定
+                let 入居宿泊フラグ = null;
+                if (用途.startsWith('(6)項ハ')) {
+                    入居宿泊フラグ = 用途.includes('（宿泊あり）');
+                    // データ保存時は基本形に戻す
+                    const 基本用途 = '(6)項ハ';
+                    建物情報.複合用途リスト.push({
+                        用途: 基本用途,
+                        面積: 面積,
+                        入居宿泊フラグ: 入居宿泊フラグ
+                    });
+                } else if (用途 === '(5)項イ') {
+                    // (5)項イは常に入居・宿泊を伴う
+                    建物情報.複合用途リスト.push({
+                        用途: 用途,
+                        面積: 面積,
+                        入居宿泊フラグ: true
+                    });
+                } else {
+                    建物情報.複合用途リスト.push({
+                        用途: 用途,
+                        面積: 面積,
+                        入居宿泊フラグ: null
+                    });
                 }
             }
-            
-            建物情報.複合用途リスト.push(useItem);
-        }
-    });
-    
-    // 階情報の収集（階情報セクションが展開されている場合のみ）
-    const floorInfoContent = document.getElementById('floor-info-content');
-    const isFloorInfoExpanded = floorInfoContent && !floorInfoContent.classList.contains('hidden');
-    
-    if (isFloorInfoExpanded) {
-        const floorItems = document.querySelectorAll('.floor-item');
-        floorItems.forEach(item => {
-            const id = item.querySelector('input[type="number"]').id.split('-')[2];
-            const floorName = item.dataset.floorName;
-            const floorNumber = parseInt(item.dataset.floorNumber);
-            const isBasement = item.dataset.isBasement === 'true';
-            
-            // 階情報が有効な場合のみ追加（階名とフロア番号が正しく設定されている場合）
-            if (floorName && !isNaN(floorNumber)) {
-                const floorInfo = {
-                    階名: floorName,
-                    階数: floorNumber,
-                    is地階: isBasement,
-                    床面積: parseFloat(document.getElementById(`floor-area-${id}`)?.value) || 0,
-                    is無窓階: document.getElementById(`floor-windowless-${id}`)?.checked || false,
-                    用途: document.getElementById(`floor-use-${id}`)?.value || '',
-                    is屋上: document.getElementById(`floor-rooftop-${id}`)?.checked || false,
-                    is同時退出可能: document.getElementById(`floor-simultaneous-exit-${id}`)?.checked || false,
-                    特定用途部分の面積: parseFloat(document.getElementById(`floor-specific-area-${id}`)?.value) || 0,
-                    特定用途: document.getElementById(`floor-specific-use-${id}`)?.value || ''
-                };
-                
-                建物情報.階情報リスト.push(floorInfo);
-            }
+        });
+    } else if (建物情報.主用途 === "(5)項イ") {
+        // 単一用途の場合
+        建物情報.複合用途リスト.push({
+            用途: "(5)項イ",
+            面積: 建物情報.延べ面積,
+            入居宿泊フラグ: true
         });
     }
     
@@ -509,30 +271,6 @@ function displayResult(判定結果_令21, 特小判定結果, 建物情報) {
         
         rei21Card.querySelector('.result-details').textContent = rei21Description;
         
-        // 階別判定が未実行の場合の注意表示（別要素として追加）
-        if (判定結果_令21.階別判定未実行) {
-            const noticeElement = document.createElement('div');
-            noticeElement.className = 'judgment-notice';
-            noticeElement.innerHTML = `
-                <div class="notice-title">【ご注意】</div>
-                <div class="notice-content">階別の詳細情報が入力されていないため、10号、11号、12号、13号、15号に該当するかどうかの判定は行われていません。</div>
-            `;
-            rei21Card.appendChild(noticeElement);
-        }
-        
-        // 詳細判定ボタンを追加（階別判定が未実行の場合のみ）
-        if (判定結果_令21.階別判定未実行) {
-            const detailButton = document.createElement('button');
-            detailButton.className = 'detail-judgment-button';
-            detailButton.innerHTML = `
-                <span class="material-icons">expand_more</span>
-                詳細な部分判定を行う
-            `;
-            detailButton.onclick = function() {
-                showFloorInfoSection();
-            };
-            rei21Card.appendChild(detailButton);
-        }
     } else {
         rei21Card.querySelector('.result-details').textContent = 'この建物には自動火災報知設備の設置義務がありません。';
     }
@@ -593,9 +331,6 @@ function createInputSummaryCard(建物情報) {
     
     let summary = `主用途: ${建物情報.主用途}\n`;
     summary += `延べ面積: ${建物情報.延べ面積}㎡\n`;
-    summary += `地上階数: ${建物情報.地上階数}階\n`;
-    summary += `地下階数: ${建物情報.地下階数}階\n`;
-    summary += `指定可燃物倍数: ${建物情報.指定可燃物倍数}\n`;
     summary += `7号条件: ${建物情報.nanaGouJoukenFlag ? '該当する' : '該当しない'}\n`;
     
     if (建物情報.複合用途リスト.length > 0) {
@@ -624,11 +359,25 @@ function createInputSummaryCard(建物情報) {
  * フォームをリセット
  */
 function resetForm() {
+    // フォームをリセット
     document.getElementById('building-form').reset();
-    document.getElementById('dynamic-form').innerHTML = '';
-    document.getElementById('result-section').classList.add('hidden');
+    
+    // 複合用途リストをクリア
+    const complexUseList = document.getElementById('complex-use-list');
+    if (complexUseList) {
+        complexUseList.innerHTML = '';
+    }
+    
+    // 結果セクションを非表示
+    const resultSection = document.getElementById('result-section');
+    if (resultSection) {
+        resultSection.classList.add('hidden');
+    }
+    
+    // カウンターをリセット
     complexUseCounter = 0;
-    floorInfoCounter = 0;
+    
+    // フォームの状態を更新
     updateForm();
 }
 
@@ -641,15 +390,24 @@ function handleFormSubmit(event) {
     try {
         const 建物情報 = collectData();
         
+        // SOW対応: バリデーション用の必要プロパティを動的に追加
+        const 判定用建物情報 = {
+            ...建物情報,
+            地上階数: 1, // バリデーション用ダミー値
+            地下階数: 0, // バリデーション用ダミー値 
+            指定可燃物倍数: 0, // バリデーション用ダミー値
+            階情報リスト: [] // バリデーション用空配列
+        };
+        
         // バリデーション
-        const validation = validateBuildingInfo(建物情報);
+        const validation = validateBuildingInfo(判定用建物情報);
         if (!validation.isValid) {
             showValidationErrors(validation.errors);
             return;
         }
         
-        // 判定実行をメイン処理に委譲
-        window.executeJudgment(建物情報);
+        // 判定実行をメイン処理に委譲（判定用の完全なオブジェクトを使用）
+        window.executeJudgment(判定用建物情報);
         
     } catch (error) {
         console.error('フォーム送信エラー:', error);
@@ -709,53 +467,6 @@ function hideHelpModal() {
     modal.classList.remove('show');
 }
 
-/**
- * 階情報セクションの表示/非表示を切り替え
- */
-function toggleFloorInfoSection() {
-    const content = document.getElementById('floor-info-content');
-    const toggle = document.getElementById('floor-info-toggle');
-    const icon = toggle.querySelector('.material-icons');
-    
-    if (content.classList.contains('hidden')) {
-        content.classList.remove('hidden');
-        icon.textContent = 'expand_less';
-        toggle.setAttribute('aria-expanded', 'true');
-    } else {
-        content.classList.add('hidden');
-        icon.textContent = 'expand_more';
-        toggle.setAttribute('aria-expanded', 'false');
-    }
-}
-
-/**
- * 階情報のヘルプを表示
- */
-function showFloorInfoHelp() {
-    const helpText = '10号～15号など、特定の階や部分のみに設置義務があるか詳しく判定する場合に入力してください。\n\n対象となる判定：\n• 10号：地階・無窓階の特定用途部分\n• 11号：地階・無窓階・3階以上の判定\n• 12号：道路部分の判定\n• 13号：駐車場部分の判定\n• 15号：通信機器室の判定';
-    showHelpModal('階別情報について', helpText);
-}
-
-/**
- * 階情報セクションを表示
- */
-function showFloorInfoSection() {
-    const section = document.querySelector('.floor-info-section');
-    if (section) {
-        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        
-        // セクションが折りたたまれている場合は展開
-        const content = document.getElementById('floor-info-content');
-        const toggle = document.getElementById('floor-info-toggle');
-        const icon = toggle?.querySelector('.material-icons');
-        
-        if (content && content.classList.contains('hidden')) {
-            content.classList.remove('hidden');
-            if (icon) icon.textContent = 'expand_less';
-            if (toggle) toggle.setAttribute('aria-expanded', 'true');
-        }
-    }
-}
 
 // DOMContentLoaded時に初期化
 document.addEventListener('DOMContentLoaded', init);

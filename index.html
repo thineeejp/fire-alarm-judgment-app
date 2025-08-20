@@ -56,41 +56,8 @@
                         <label for="primary-use" class="form-label">主用途</label>
                         <select id="primary-use" name="primary-use" class="form-select" required>
                             <option value="">選択してください</option>
-                            <option value="(1)項イ">(1)項イ 劇場、映画館、演芸場又は観覧場</option>
-                            <option value="(1)項ロ">(1)項ロ 公会堂又は集会場</option>
-                            <option value="(2)項イ">(2)項イ キャバレー、カフェー、ナイトクラブその他これらに類するもの</option>
-                            <option value="(2)項ロ">(2)項ロ 遊技場又はダンスホール</option>
-                            <option value="(2)項ハ">(2)項ハ 風俗営業等の規制及び業務の適正化等に関する法律に規定する性風俗関連特殊営業を営む店舗その他これに類するもの</option>
-                            <option value="(3)項イ">(3)項イ 待合、料理店その他これらに類するもの</option>
-                            <option value="(3)項ロ">(3)項ロ 飲食店</option>
-                            <option value="(4)項">(4)項 百貨店、マーケットその他の物品販売業を営む店舗又は展示場</option>
+                            <option value="(16)項イ" selected>(16)項イ 複合用途防火対象物（特定用途を含む）</option>
                             <option value="(5)項イ">(5)項イ 旅館、ホテル、宿泊所その他これらに類するもの</option>
-                            <option value="(5)項ロ">(5)項ロ 寄宿舎、下宿又は共同住宅</option>
-                            <option value="(6)項イ(1)">(6)項イ(1) 病院</option>
-                            <option value="(6)項イ(2)">(6)項イ(2) 有床診療所・助産所</option>
-                            <option value="(6)項イ(3)">(6)項イ(3) 上記以外の病院等(1-3床)</option>
-                            <option value="(6)項イ(4)">(6)項イ(4) 無床診療所・無床助産所</option>
-                            <option value="(6)項ロ">(6)項ロ 老人福祉施設、有料老人ホーム、介護老人保健施設、救護施設、更生施設、児童福祉施設等</option>
-                            <option value="(6)項ハ">(6)項ハ 高齢者福祉施設等</option>
-                            <option value="(6)項ニ">(6)項ニ 幼稚園又は特別支援学校</option>
-                            <option value="(7)項">(7)項 小学校、中学校、高等学校、中等教育学校、高等専門学校、大学、専修学校、各種学校その他これらに類するもの</option>
-                            <option value="(8)項">(8)項 図書館、博物館、美術館その他これらに類するもの</option>
-                            <option value="(9)項イ">(9)項イ 公衆浴場のうち、蒸気浴場、熱気浴場その他これらに類するもの</option>
-                            <option value="(9)項ロ">(9)項ロ イに掲げる公衆浴場以外の公衆浴場</option>
-                            <option value="(10)項">(10)項 車両の停車場又は船舶若しくは航空機の発着場</option>
-                            <option value="(11)項">(11)項 神社、寺院、教会その他これらに類するもの</option>
-                            <option value="(12)項イ">(12)項イ 工場又は作業場</option>
-                            <option value="(12)項ロ">(12)項ロ 映画スタジオ又はテレビスタジオ</option>
-                            <option value="(13)項イ">(13)項イ 自動車車庫又は駐車場</option>
-                            <option value="(13)項ロ">(13)項ロ 飛行機又は回転翼航空機の格納庫</option>
-                            <option value="(14)項">(14)項 倉庫</option>
-                            <option value="(15)項">(15)項 前各項に該当しない事業場</option>
-                            <option value="(16)項イ">(16)項イ 複合用途防火対象物（特定用途を含む）</option>
-                            <option value="(16)項ロ">(16)項ロ 複合用途防火対象物（その他）</option>
-                            <option value="(16の2)項">(16の2)項 地下街</option>
-                            <option value="(16の3)項">(16の3)項 地下道に面する建築物</option>
-                            <option value="(17)項">(17)項 重要文化財</option>
-                            <option value="一般住宅">一般住宅</option>
                         </select>
                     </div>
 
@@ -99,36 +66,27 @@
                         <input type="number" id="total-area" name="total-area" class="form-input" min="0" step="0.01" required>
                     </div>
 
-                    <div class="form-group">
-                        <label for="ground-floors" class="form-label">地上階数</label>
-                        <input type="number" id="ground-floors" name="ground-floors" class="form-input" min="1" max="50" required>
+                    <!-- 構成用途入力ブロック -->
+                    <div id="complex-use-section" class="complex-use-section hidden">
+                        <h3 class="complex-use-title">構成用途</h3>
+                        
+                        <!-- 個別の用途ブロックが追加されるリストコンテナ -->
+                        <div id="complex-use-list">
+                            <!-- JavaScriptによって動的に用途ブロックが追加される -->
+                        </div>
+                        
+                        <!-- 追加ボタンを親コンテナの末尾に配置 -->
+                        <button type="button" id="add-complex-use" class="add-use-btn">
+                            <span class="material-icons">add</span>
+                            用途を追加
+                        </button>
                     </div>
 
-                    <div class="form-group">
-                        <label for="basement-floors" class="form-label">地下階数</label>
-                        <input type="number" id="basement-floors" name="basement-floors" class="form-input" min="0" max="10" value="0">
-                    </div>
-
-                    <!-- 動的フォーム部分 -->
-                    <div id="dynamic-form" class="dynamic-form">
-                        <!-- 動的に追加されるフォーム項目 -->
-                    </div>
-
-                    <!-- 指定可燃物 -->
-                    <div class="form-group">
-                        <label for="flammable-multiplier" class="form-label">
-                            指定可燃物の数量倍数
-                            <span class="help-icon" data-help="指定可燃物の数量倍数の合計を入力してください">
-                                <span class="material-icons">help_outline</span>
-                            </span>
-                        </label>
-                        <input type="number" id="flammable-multiplier" name="flammable-multiplier" class="form-input" min="0" step="0.01" value="0">
-                    </div>
 
                     <div class="form-group">
                         <label class="form-label">
-                            令第21条第1項第7号の条件
-                            <span class="help-icon" data-help="特定用途部分が避難階以外の階にあり、そこから地上への直通階段が実質的に1つしかない場合にチェックします。">
+                            特定用途部分が避難階以外の階にあり、そこから避難階又は地上への直通階段が1つしかない
+                            <span class="help-icon" data-help="チェックした場合は7号に該当と判定します。">
                                 <span class="material-icons">help_outline</span>
                             </span>
                         </label>
@@ -156,6 +114,23 @@
                             <span class="material-icons">analytics</span>
                             判定する
                         </button>
+                    </div>
+
+                    <div class="special-conditions-toggle">
+                        <button type="button" id="toggle-special-conditions" class="btn btn-secondary">▽ 特殊条件を確認する</button>
+                    </div>
+                    <div id="special-conditions-list" class="special-conditions-list hidden">
+                        <h4>【特殊条件】</h4>
+                        <p>以下の条件に該当する場合、本ツールの判定結果に加え、個別検討が必要です。</p>
+                        <ul>
+                            <li>指定可燃物を500倍以上貯蔵・取扱う (8号関連)</li>
+                            <li>地階・無窓階に特定用途(2項,3項等)が100㎡以上ある (10号関連)</li>
+                            <li>地階・無窓階・3階以上の階に300㎡以上の部分がある (11号関連)</li>
+                            <li>道路の用に供される部分がある (12号関連)</li>
+                            <li>200㎡以上の屋内駐車場がある (13号関連)</li>
+                            <li>階数が11以上 (14号関連)</li>
+                            <li>500㎡以上の通信機器室がある (15号関連)</li>
+                        </ul>
                     </div>
                 </form>
             </section>
