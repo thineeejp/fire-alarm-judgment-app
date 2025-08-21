@@ -693,44 +693,76 @@ function generateMarkdownResult(判定結果_令21, 特小判定結果, 建物�
  * クリップボードにテキストをコピー
  */
 async function copyToClipboard(text, button) {
-    try {
-        await navigator.clipboard.writeText(text);
-        
-        // ボタンの表示を一時的に変更
+    // 共通のフィードバック処理
+    function showFeedback() {
         const originalText = button.innerHTML;
         button.innerHTML = '<span class="material-icons">check</span>コピー完了';
         button.disabled = true;
         
-        setTimeout(() => {
+        // 確実にリセットされるように、timeoutのIDを保持
+        const timeoutId = setTimeout(() => {
             button.innerHTML = originalText;
             button.disabled = false;
         }, 2000);
         
+        // ボタンがDOM上に存在しなくなった場合に備えてクリーンアップ
+        return timeoutId;
+    }
+    
+    try {
+        await navigator.clipboard.writeText(text);
+        showFeedback();
     } catch (err) {
         console.error('コピーに失敗しました:', err);
         
         // フォールバック: テキストエリアを使用
         const textArea = document.createElement('textarea');
         textArea.value = text;
-        // テキストエリアを非表示にする
-        textArea.style.position = 'fixed';
+        
+        // テキストエリアを完全に非表示にする
+        textArea.style.position = 'absolute';
         textArea.style.left = '-9999px';
         textArea.style.top = '-9999px';
+        textArea.style.width = '0px';
+        textArea.style.height = '0px';
         textArea.style.opacity = '0';
+        textArea.style.visibility = 'hidden';
+        textArea.style.border = 'none';
+        textArea.style.outline = 'none';
+        textArea.style.background = 'transparent';
+        textArea.style.color = 'transparent';
+        textArea.style.fontSize = '0px';
+        textArea.tabIndex = -1;
+        textArea.setAttribute('readonly', 'readonly');
+        
         document.body.appendChild(textArea);
+        textArea.focus();
         textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
         
-        // フィードバック
-        const originalText = button.innerHTML;
-        button.innerHTML = '<span class="material-icons">check</span>コピー完了';
-        button.disabled = true;
+        try {
+            const successful = document.execCommand('copy');
+            if (successful) {
+                showFeedback();
+            } else {
+                throw new Error('execCommand failed');
+            }
+        } catch (copyErr) {
+            console.error('フォールバックコピーも失敗しました:', copyErr);
+            // フィードバックは失敗メッセージに変更
+            const originalText = button.innerHTML;
+            button.innerHTML = '<span class="material-icons">error</span>コピー失敗';
+            button.disabled = true;
+            
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }, 2000);
+        }
         
-        setTimeout(() => {
-            button.innerHTML = originalText;
-            button.disabled = false;
-        }, 2000);
+        // 確実にクリーンアップ
+        if (document.body.contains(textArea)) {
+            document.body.removeChild(textArea);
+        }
     }
 }
 
