@@ -715,7 +715,7 @@ body {
     color: var(--neutral-800);
 }
 
-/* 設置範囲タグの余白を調整 */
+/* 設置義務タグの余白を調整 */
 .result-summary-tag {
     margin-top: 0;
     margin-bottom: var(--spacing-sm);

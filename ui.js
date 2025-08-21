@@ -390,7 +390,7 @@ function createStructuredResultCard(title, status, type, data) {
         }
         
         if (data.scope) {
-            // 設置範囲ブロックの生成
+            // 設置義務ブロックの生成
             const scopeBlock = createResultBlock(
                 data.scope.title, 
                 null, // 説明文は不要
@@ -408,7 +408,7 @@ function createStructuredResultCard(title, status, type, data) {
             // タイトルの後にタグを追加
             scopeBlock.querySelector('.result-block-title').insertAdjacentElement('afterend', summaryTag);
 
-            // 設置範囲の詳細リスト
+            // 設置義務の詳細リスト
             if (data.scope.details.length > 0) {
                 const list = document.createElement('ul');
                 list.className = 'result-block-list';
@@ -634,8 +634,8 @@ function generateMarkdownResult(判定結果_令21, 特小判定結果, 建物�
         markdown += 'この建物は消防法施行令第21条により自動火災報知設備の設置義務があります。\n';
         markdown += `該当号: ${判定結果_令21.根拠リスト.join('、')}\n\n`;
         
-        // 設置範囲
-        markdown += '### 設置範囲\n';
+        // 設置義務
+        markdown += '### 設置義務\n';
         markdown += `範囲: ${判定結果_令21.全体義務 ? '建物全体' : '一部分のみ'}\n`;
         
         if (判定結果_令21.全体義務) {
