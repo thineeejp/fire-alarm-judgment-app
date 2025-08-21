@@ -442,6 +442,20 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    
+    /* SOW要件: ネイティブスタイルの無効化 */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    
+    /* カスタム矢印の実装（ライトモード用：濃い灰色） */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23616161' d='M6 8.5L2.5 5h7L6 8.5z'/%3E%3C/svg%3E");
+    background-position: right 12px center;
+    background-repeat: no-repeat;
+    background-size: 12px;
+    
+    /* テキストが矢印と重ならないようpadding調整 */
+    padding-right: 40px;
 }
 
 /* セレクトボックスのオプション表示を改善 */
@@ -1656,6 +1670,11 @@ body {
         background-color: rgba(30, 39, 48, 0.9);
         border-color: var(--md-sys-color-outline);
         color: var(--md-sys-color-on-surface);
+    }
+    
+    /* SOW要件: ダークモード用カスタム矢印（明るい灰色） */
+    .form-select {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23e0e0e0' d='M6 8.5L2.5 5h7L6 8.5z'/%3E%3C/svg%3E");
     }
     
     /* Android Chrome対策: option要素への明示的な色指定 */
