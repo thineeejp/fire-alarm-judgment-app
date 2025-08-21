@@ -446,10 +446,18 @@ body {
 
 /* セレクトボックスのオプション表示を改善 */
 .form-select option {
+    background-color: #ffffff;
+    color: #000000;
     white-space: normal;
     word-wrap: break-word;
     max-width: 100%;
     padding: 8px;
+}
+
+.form-select option:checked,
+.form-select option:focus {
+    background-color: var(--md-sys-color-primary);
+    color: var(--md-sys-color-on-primary);
 }
 
 /* ビューポート幅の制約でドロップダウンを制御 */
@@ -1648,6 +1656,18 @@ body {
         background-color: rgba(30, 39, 48, 0.9);
         border-color: var(--md-sys-color-outline);
         color: var(--md-sys-color-on-surface);
+    }
+    
+    /* Android Chrome対策: option要素への明示的な色指定 */
+    .form-select option {
+        background-color: #2d3748 !important;
+        color: #ffffff !important;
+    }
+    
+    .form-select option:checked,
+    .form-select option:focus {
+        background-color: var(--md-sys-color-primary) !important;
+        color: var(--md-sys-color-on-primary) !important;
     }
     
     .result-card {
