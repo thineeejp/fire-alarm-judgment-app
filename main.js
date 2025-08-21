@@ -30,8 +30,10 @@ function executeJudgment(建物情報) {
         console.error('判定処理エラー:', error);
         showError('判定処理中にエラーが発生しました。入力内容を確認してください。');
     } finally {
-        // 処理終了を示すUI更新
-        hideLoadingState();
+        // 処理終了を示すUI更新（微小な遅延で確実に実行）
+        setTimeout(() => {
+            hideLoadingState();
+        }, 100);
     }
 }
 
@@ -72,7 +74,17 @@ function hideLoadingState() {
     
     if (form) {
         form.classList.remove('loading');
+        // 強制的にクラスの削除を確認
+        if (form.classList.contains('loading')) {
+            console.warn('ローディングクラスの削除に失敗、再試行します');
+            form.className = form.className.replace(/\bloading\b/g, '').trim();
+        }
     }
+    
+    // 全ての.loadingクラスを確実に削除
+    document.querySelectorAll('.loading').forEach(element => {
+        element.classList.remove('loading');
+    });
 }
 
 /**
