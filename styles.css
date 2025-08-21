@@ -820,16 +820,13 @@ body {
     background-color: rgba(255, 255, 255, 0.5);
     border-radius: var(--radius-md);
     padding: var(--spacing-sm);
-    border-left: 4px solid;
 }
 
 .judgment-detail-item--pass {
-    border-left-color: var(--success-500);
     background-color: rgba(76, 175, 80, 0.1);
 }
 
 .judgment-detail-item--fail {
-    border-left-color: var(--error-500);
     background-color: rgba(244, 67, 54, 0.1);
 }
 
@@ -851,22 +848,72 @@ body {
     font-weight: 500;
     padding: 2px 8px;
     border-radius: var(--radius-sm);
+    background-color: transparent;
+    border: 1px solid currentColor;
 }
 
 .judgment-detail-item--pass .judgment-detail-result {
-    background-color: var(--success-100);
-    color: var(--success-800);
+    color: var(--success-700);
 }
 
 .judgment-detail-item--fail .judgment-detail-result {
-    background-color: var(--error-100);
-    color: var(--error-800);
+    color: var(--error-700);
 }
 
 .judgment-detail-reason {
     font-size: var(--md-sys-typescale-body-small-size);
     color: var(--neutral-700);
     line-height: 1.4;
+}
+
+/* ========================
+   判定結果コピーボタン
+   ======================== */
+.copy-result-container {
+    margin-top: var(--spacing-lg);
+    padding-top: var(--spacing-md);
+    border-top: 1px solid var(--neutral-300);
+    display: flex;
+    justify-content: center;
+}
+
+.copy-result-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-lg);
+    background-color: var(--primary-500);
+    color: var(--primary-on-primary);
+    border: none;
+    border-radius: var(--radius-lg);
+    font-size: var(--md-sys-typescale-label-large-size);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: var(--elevation-1);
+}
+
+.copy-result-btn:hover {
+    background-color: var(--primary-600);
+    box-shadow: var(--elevation-2);
+    transform: translateY(-1px);
+}
+
+.copy-result-btn:active {
+    background-color: var(--primary-700);
+    box-shadow: var(--elevation-1);
+    transform: translateY(0);
+}
+
+.copy-result-btn:disabled {
+    background-color: var(--primary-400);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: var(--elevation-1);
+}
+
+.copy-result-btn .material-icons {
+    font-size: 20px;
 }
 
 

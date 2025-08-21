@@ -296,6 +296,9 @@ function displayResult(判定結果_令21, 特小判定結果, 建物情報) {
     // 結果セクションを表示
     resultSection.classList.remove('hidden');
     resultSection.scrollIntoView({ behavior: 'smooth' });
+    
+    // コピーボタンのイベントリスナーを設定
+    setupCopyButton(判定結果_令21, 特小判定結果, 建物情報);
 }
 
 /**
@@ -579,6 +582,150 @@ function createInputSummaryCard(建物情報) {
     card.appendChild(detailsDiv);
     
     return card;
+}
+
+/**
+ * コピーボタンのイベントリスナーを設定
+ */
+function setupCopyButton(判定結果_令21, 特小判定結果, 建物情報) {
+    const copyButton = document.getElementById('copy-result-btn');
+    if (copyButton) {
+        copyButton.addEventListener('click', () => {
+            const markdownText = generateMarkdownResult(判定結果_令21, 特小判定結果, 建物情報);
+            copyToClipboard(markdownText, copyButton);
+        });
+    }
+}
+
+/**
+ * 判定結果をマークダウン形式で生成
+ */
+function generateMarkdownResult(判定結果_令21, 特小判定結果, 建物情報) {
+    let markdown = '# 自動火災報知設備判定結果\n\n';
+    
+    // 基本情報
+    markdown += '## 基本情報\n';
+    markdown += `- 主用途: ${建物情報.主用途}\n`;
+    markdown += `- 延べ面積: ${建物情報.延べ面積}㎡\n`;
+    markdown += `- 7号条件: ${建物情報.nanaGouJoukenFlag ? '該当する' : '該当しない'}\n`;
+    markdown += `- 特殊要件: ${建物情報.specialConditionsFlag ? '該当する' : '該当しない'}\n\n`;
+    
+    // 構成用途
+    if (建物情報.複合用途リスト.length > 0) {
+        markdown += '## 構成用途\n';
+        建物情報.複合用途リスト.forEach(item => {
+            markdown += `- ${item.用途}: ${item.面積}㎡`;
+            if (item.入居宿泊フラグ !== null) {
+                markdown += ` (宿泊: ${item.入居宿泊フラグ ? 'あり' : 'なし'})`;
+            }
+            markdown += '\n';
+        });
+        markdown += '\n';
+    }
+    
+    // 令第21条判定結果
+    markdown += '## 令第21条判定結果\n';
+    if (判定結果_令21.根拠リスト.length > 0) {
+        markdown += '設置義務: あり\n\n';
+        
+        // 法的根拠
+        markdown += '### 法的根拠\n';
+        markdown += 'この建物は消防法施行令第21条により自動火災報知設備の設置義務があります。\n';
+        markdown += `該当号: ${判定結果_令21.根拠リスト.join('、')}\n\n`;
+        
+        // 設置範囲
+        markdown += '### 設置範囲\n';
+        markdown += `範囲: ${判定結果_令21.全体義務 ? '建物全体' : '一部分のみ'}\n`;
+        
+        if (判定結果_令21.全体義務) {
+            markdown += `- 建物全体に設置義務があります（${判定結果_令21.全体義務}）\n`;
+        }
+        
+        if (判定結果_令21.部分義務リスト.length > 0) {
+            判定結果_令21.部分義務リスト.forEach(item => {
+                markdown += `- ${item.対象}に設置義務があります（${item.号}）\n`;
+            });
+        }
+        markdown += '\n';
+        
+        // 小規模特定用途複合防火対象物
+        if (isShokiboTokutei(建物情報)) {
+            markdown += '### 小規模特定用途複合防火対象物\n';
+            const smallScaleDetails = getSmallScaleDetails(建物情報, 判定結果_令21, 特小判定結果);
+            markdown += `該当: 該当`;
+            if (smallScaleDetails.hasAttentionRequired) {
+                markdown += ' (注意)';
+            }
+            markdown += '\n';
+            if (smallScaleDetails.message) {
+                markdown += `${smallScaleDetails.message}\n`;
+            }
+            markdown += '\n';
+        }
+    } else {
+        markdown += '設置義務: なし\n';
+        markdown += 'この建物は消防法施行令第21条による自動火災報知設備の設置義務がありません。\n\n';
+    }
+    
+    // 特定小規模施設用自動火災報知設備判定結果
+    markdown += '## 特定小規模施設用自動火災報知設備判定結果\n';
+    markdown += `設置可否: ${特小判定結果.設置可否}\n`;
+    markdown += `理由: ${特小判定結果.根拠}\n\n`;
+    
+    // 判定詳細
+    if (特小判定結果.judgmentDetails && 特小判定結果.judgmentDetails.length > 0) {
+        markdown += '### 判定詳細\n';
+        特小判定結果.judgmentDetails.forEach(detail => {
+            markdown += `- ${detail.号}: ${detail.結果} - ${detail.理由}\n`;
+        });
+        markdown += '\n';
+    }
+    
+    // 生成日時
+    const now = new Date();
+    markdown += `---\n判定結果生成日時: ${now.toLocaleString('ja-JP')}`;
+    
+    return markdown;
+}
+
+/**
+ * クリップボードにテキストをコピー
+ */
+async function copyToClipboard(text, button) {
+    try {
+        await navigator.clipboard.writeText(text);
+        
+        // ボタンの表示を一時的に変更
+        const originalText = button.innerHTML;
+        button.innerHTML = '<span class="material-icons">check</span>コピー完了';
+        button.disabled = true;
+        
+        setTimeout(() => {
+            button.innerHTML = originalText;
+            button.disabled = false;
+        }, 2000);
+        
+    } catch (err) {
+        console.error('コピーに失敗しました:', err);
+        
+        // フォールバック: テキストエリアを使用
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        
+        // フィードバック
+        const originalText = button.innerHTML;
+        button.innerHTML = '<span class="material-icons">check</span>コピー完了';
+        button.disabled = true;
+        
+        setTimeout(() => {
+            button.innerHTML = originalText;
+            button.disabled = false;
+        }, 2000);
+    }
 }
 
 /**
