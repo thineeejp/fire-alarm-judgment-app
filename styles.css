@@ -674,6 +674,8 @@ body {
 .result-details {
     font-size: var(--md-sys-typescale-body-small-size);
     opacity: 0.8;
+    white-space: pre-wrap; /* 改行コードを表示に反映 */
+    word-wrap: break-word; /* 長いURLなどでのレイアウト崩れ防止 */
 }
 
 /* 動的フォーム */
