@@ -747,6 +747,24 @@ body {
     border: 1px solid var(--neutral-300);
 }
 
+.result-summary-tag--attention {
+    background-color: var(--warning-100);
+    color: var(--warning-800);
+    border: 1px solid var(--warning-300);
+}
+
+.result-summary-tag--whole {
+    background-color: #fce4ec;
+    color: #ad1457;
+    border: 1px solid #f8bbd9;
+}
+
+.result-summary-tag--partial {
+    background-color: #fff3e0;
+    color: #e65100;
+    border: 1px solid #ffcc80;
+}
+
 /* 結果ブロック内のリスト */
 .result-block-list {
     margin: var(--spacing-sm) 0 0 0;

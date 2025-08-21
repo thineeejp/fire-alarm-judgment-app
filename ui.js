@@ -398,7 +398,7 @@ function createStructuredResultCard(title, status, type, data) {
             summaryTag.className = 'result-summary-tag';
             summaryTag.classList.add(data.scope.type === 'whole' ? 'result-summary-tag--whole' : 'result-summary-tag--partial');
             summaryTag.innerHTML = `
-                <span class="material-icons">${data.scope.type === 'whole' ? 'business' : 'splitscreen'}</span>
+                <span class="material-icons">${data.scope.type === 'whole' ? 'business' : 'view_module'}</span>
                 ${data.scope.type === 'whole' ? '建物全体' : '一部分のみ'}
             `;
             // タイトルの後にタグを追加
@@ -426,6 +426,12 @@ function createStructuredResultCard(title, status, type, data) {
                 'info'
             );
             
+            // 該当・非該当タグとその他のタグを含むコンテナ
+            const tagsContainer = document.createElement('div');
+            tagsContainer.style.display = 'flex';
+            tagsContainer.style.gap = 'var(--spacing-sm)';
+            tagsContainer.style.marginBottom = 'var(--spacing-sm)';
+            
             // 該当・非該当タグ
             const applicabilityTag = document.createElement('div');
             applicabilityTag.className = 'result-summary-tag';
@@ -434,8 +440,21 @@ function createStructuredResultCard(title, status, type, data) {
                 <span class="material-icons">${data.smallScale.isApplicable ? 'check_circle' : 'cancel'}</span>
                 ${data.smallScale.isApplicable ? '該当' : '非該当'}
             `;
-            // タイトルの後にタグを追加
-            smallScaleBlock.querySelector('.result-block-title').insertAdjacentElement('afterend', applicabilityTag);
+            tagsContainer.appendChild(applicabilityTag);
+            
+            // 注意が必要な場合は注意タグを追加
+            if (data.smallScale.isApplicable && data.smallScale.hasAttentionRequired) {
+                const attentionTag = document.createElement('div');
+                attentionTag.className = 'result-summary-tag result-summary-tag--attention';
+                attentionTag.innerHTML = `
+                    <span class="material-icons">warning</span>
+                    注意
+                `;
+                tagsContainer.appendChild(attentionTag);
+            }
+            
+            // タイトルの後にタグコンテナを追加
+            smallScaleBlock.querySelector('.result-block-title').insertAdjacentElement('afterend', tagsContainer);
             
             // 該当の場合のみ詳細メッセージを表示
             if (data.smallScale.isApplicable && data.smallScale.description) {
@@ -515,13 +534,21 @@ function createInputSummaryCard(建物情報) {
         });
     }
     
-    card.innerHTML = `
-        <div class="result-title">
-            <span class="material-icons">info</span>
-            入力内容の確認
-        </div>
-        <div class="result-details">${summary}</div>
+    const titleDiv = document.createElement('div');
+    titleDiv.className = 'result-title';
+    titleDiv.innerHTML = `
+        <span class="material-icons">info</span>
+        入力内容の確認
     `;
+    
+    const detailsDiv = document.createElement('div');
+    detailsDiv.className = 'result-details';
+    detailsDiv.style.whiteSpace = 'pre-wrap';
+    detailsDiv.style.display = 'block';
+    detailsDiv.textContent = summary;
+    
+    card.appendChild(titleDiv);
+    card.appendChild(detailsDiv);
     
     return card;
 }

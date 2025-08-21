@@ -523,6 +523,7 @@ function generateResultDescription(判定結果_令21, 特小判定結果, 建�
         result.rei21.smallScale = {
             title: "小規模特定用途複合防火対象物",
             isApplicable: smallScaleDetails.isApplicable,
+            hasAttentionRequired: smallScaleDetails.hasAttentionRequired,
             description: smallScaleDetails.message
         };
     }
@@ -604,6 +605,7 @@ function getSmallScaleDetails(建物情報, 判定結果_令21, 特小判定結�
     return {
         isApplicable: true,
         hasLimitedInstallation: hasInstallationLimitation,
+        hasAttentionRequired: hasAreaLimitIssue,
         message: message
     };
 }
