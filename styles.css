@@ -1417,7 +1417,11 @@ body {
     overflow: hidden;
 }
 
-.loading::before {
+.loading .form-actions {
+    position: relative;
+}
+
+.loading .form-actions::before {
     content: '';
     position: absolute;
     top: 0;
@@ -1427,10 +1431,17 @@ body {
     background: linear-gradient(
         90deg,
         transparent,
-        rgba(255, 255, 255, 0.6),
+        rgba(255, 255, 255, 0.4),
         transparent
     );
     animation: shimmer 1.5s infinite;
+    border-radius: var(--radius-md);
+    z-index: 1;
+}
+
+.loading .form-actions .btn {
+    position: relative;
+    z-index: 2;
 }
 
 /* キーボードナビゲーション */
