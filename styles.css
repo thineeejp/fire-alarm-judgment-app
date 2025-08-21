@@ -804,6 +804,71 @@ body {
     line-height: 1.5;
 }
 
+/* ========================
+   特小自火報判定詳細表示
+   ======================== */
+.judgment-details-list {
+    margin: var(--spacing-sm) 0 0 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.judgment-detail-item {
+    background-color: rgba(255, 255, 255, 0.5);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-sm);
+    border-left: 4px solid;
+}
+
+.judgment-detail-item--pass {
+    border-left-color: var(--success-500);
+    background-color: rgba(76, 175, 80, 0.1);
+}
+
+.judgment-detail-item--fail {
+    border-left-color: var(--error-500);
+    background-color: rgba(244, 67, 54, 0.1);
+}
+
+.judgment-detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-xs);
+}
+
+.judgment-detail-number {
+    font-weight: 600;
+    font-size: var(--md-sys-typescale-label-large-size);
+    color: var(--neutral-800);
+}
+
+.judgment-detail-result {
+    font-size: var(--md-sys-typescale-label-small-size);
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+}
+
+.judgment-detail-item--pass .judgment-detail-result {
+    background-color: var(--success-100);
+    color: var(--success-800);
+}
+
+.judgment-detail-item--fail .judgment-detail-result {
+    background-color: var(--error-100);
+    color: var(--error-800);
+}
+
+.judgment-detail-reason {
+    font-size: var(--md-sys-typescale-body-small-size);
+    color: var(--neutral-700);
+    line-height: 1.4;
+}
+
 
 /* 動的フォーム */
 .dynamic-form {

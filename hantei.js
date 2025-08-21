@@ -201,13 +201,14 @@ function 判定実行_令21(建物情報) {
 function 特小判定実行(判定結果_令21, 建物情報) {
     // --- STEP 0: 前提条件のチェック ---
     if (判定結果_令21.根拠リスト.length === 0) {
-        return { 設置可否: "判定対象外", 根拠: "自火報の設置義務がありません", 該当号: null, hasAreaLimitIssue: false };
+        return { 設置可否: "判定対象外", 根拠: "自火報の設置義務がありません", 該当号: null, hasAreaLimitIssue: false, judgmentDetails: [] };
     }
 
     let 設置可能フラグ = false;
     let 判定根拠号 = null;
     let 否決理由 = "";
     let hasAreaLimitIssue = false;
+    let judgmentDetails = []; // 各号の判定詳細を記録
 
     // === イ号の判定 ===
     const 除外号リスト_イ = ["3号", "4号", "5号", "6号", "8号", "11号", "12号", "14号", "15号"];
@@ -216,8 +217,26 @@ function 特小判定実行(判定結果_令21, 建物情報) {
     if (根拠号が対象か_イ && 建物情報.延べ面積 < 300) {
         設置可能フラグ = true;
         判定根拠号 = "イ号";
+        judgmentDetails.push({
+            号: "イ号",
+            結果: "該当",
+            理由: "要件を満たす"
+        });
+    } else {
+        // イ号の否決理由を記録
+        let 理由_イ = "";
+        if (!根拠号が対象か_イ) {
+            const 該当除外号 = 判定結果_令21.根拠リスト.filter(号 => 除外号リスト_イ.includes(号));
+            理由_イ = `除外号(${該当除外号.join(", ")})に該当するため`;
+        } else if (建物情報.延べ面積 >= 300) {
+            理由_イ = `延べ面積(${建物情報.延べ面積}㎡)が300㎡以上のため`;
+        }
+        judgmentDetails.push({
+            号: "イ号",
+            結果: "非該当",
+            理由: 理由_イ
+        });
     }
-    // イ号が失敗しても、ここでは最終的な否決理由を設定しない
 
     // === ロ号の判定 ===
     if (!設置可能フラグ && 建物情報.主用途 === "(16)項イ") {
@@ -335,9 +354,19 @@ function 特小判定実行(判定結果_令21, 建物情報) {
         if (条件クリア_ロ) {
             設置可能フラグ = true;
             判定根拠号 = "ロ号";
+            judgmentDetails.push({
+                号: "ロ号",
+                結果: "該当",
+                理由: "要件を満たす"
+            });
+        } else {
+            // ロ号の否決理由を記録
+            judgmentDetails.push({
+                号: "ロ号",
+                結果: "非該当",
+                理由: 理由_ロ || "規則第23条第4項第1号ロの要件に適合しない"
+            });
         }
-        // ロ号が失敗しても、ここでは最終的な否決理由を設定しない
-        // 単に設置可能フラグがfalseのまま、次のハ号判定に進む
     }
 
     // === ハ号の判定 ===
@@ -368,19 +397,30 @@ function 特小判定実行(判定結果_令21, 建物情報) {
         if (条件クリア_ハ) {
             設置可能フラグ = true;
             判定根拠号 = "ハ号";
+            judgmentDetails.push({
+                号: "ハ号",
+                結果: "該当",
+                理由: "要件を満たす"
+            });
         } else {
+            // ハ号の否決理由を記録
+            judgmentDetails.push({
+                号: "ハ号",
+                結果: "非該当",
+                理由: 理由_ハ
+            });
             // ハ号もダメだった場合、ここで初めて最終的な否決理由を設定
-            否決理由 = `${理由_ハ}、ハ号の対象外です。`;
+            否決理由 = "イ・ロ・ハのいずれにも該当しません。";
         }
     }
 
     // === 最終結果の返却 ===
     if (設置可能フラグ) {
-        return { 設置可否: "設置可能", 根拠: `特定小規模施設に関する省令 第2条第1号【${判定根拠号}】に該当します。`, 該当号: 判定根拠号, hasAreaLimitIssue: hasAreaLimitIssue };
+        return { 設置可否: "設置可能", 根拠: `特定小規模施設に関する省令 第2条第1号【${判定根拠号}】に該当します。`, 該当号: 判定根拠号, hasAreaLimitIssue: hasAreaLimitIssue, judgmentDetails: judgmentDetails };
     } else {
         // 全ての判定に失敗した場合の理由を設定
-        const finalReason = 否決理由 || "特定小規模施設のいずれの要件にも該当しませんでした。";
-        return { 設置可否: "設置不可", 根拠: finalReason, 該当号: null, hasAreaLimitIssue: hasAreaLimitIssue };
+        const finalReason = 否決理由 || "イ・ロ・ハのいずれにも該当しません。";
+        return { 設置可否: "設置不可", 根拠: finalReason, 該当号: null, hasAreaLimitIssue: hasAreaLimitIssue, judgmentDetails: judgmentDetails };
     }
 }
 
@@ -539,14 +579,16 @@ function generateResultDescription(判定結果_令21, 特小判定結果, 建�
             applicable: true,
             canInstall: true,
             description: "特定小規模施設用自動火災報知設備の設置が可能です。",
-            basis: 特小判定結果.根拠
+            basis: 特小判定結果.根拠,
+            judgmentDetails: 特小判定結果.judgmentDetails
         };
     } else {
         result.tokusho = {
             applicable: true,
             canInstall: false,
             description: "特定小規模施設用自動火災報知設備の設置はできません。",
-            reason: 特小判定結果.根拠
+            reason: 特小判定結果.根拠,
+            judgmentDetails: 特小判定結果.judgmentDetails
         };
     }
     

@@ -475,6 +475,34 @@ function createStructuredResultCard(title, status, type, data) {
             detailsDiv.appendChild(p);
         }
         
+        // 特小自火報の判定詳細表示
+        if (data.judgmentDetails && data.judgmentDetails.length > 0) {
+            const detailsBlock = createResultBlock(
+                '判定詳細',
+                null,
+                'list_alt'
+            );
+            
+            const detailsList = document.createElement('ul');
+            detailsList.className = 'judgment-details-list';
+            
+            data.judgmentDetails.forEach(detail => {
+                const listItem = document.createElement('li');
+                listItem.className = `judgment-detail-item judgment-detail-item--${detail.結果 === '該当' ? 'pass' : 'fail'}`;
+                listItem.innerHTML = `
+                    <div class="judgment-detail-header">
+                        <span class="judgment-detail-number">${detail.号}</span>
+                        <span class="judgment-detail-result">${detail.結果}</span>
+                    </div>
+                    <div class="judgment-detail-reason">${detail.理由}</div>
+                `;
+                detailsList.appendChild(listItem);
+            });
+            
+            detailsBlock.appendChild(detailsList);
+            detailsDiv.appendChild(detailsBlock);
+        }
+        
         // 単純な説明の場合
         if (!data.legalBasis && !data.scope && !data.specialNote && !data.basis && !data.reason && data.description) {
             detailsDiv.textContent = data.description;
