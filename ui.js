@@ -262,37 +262,31 @@ function displayResult(判定結果_令21, 特小判定結果, 建物情報) {
     
     resultContent.innerHTML = '';
     
-    // 令第21条の判定結果カード
-    const rei21Card = createResultCard(
-        '自動火災報知設備の設置義務',
-        判定結果_令21.根拠リスト.length > 0 ? '設置義務あり' : '設置義務なし',
-        判定結果_令21.根拠リスト.length > 0 ? 'warning' : 'success'
-    );
+    // 構造化オブジェクトを取得
+    const structuredResult = generateResultDescription(判定結果_令21, 特小判定結果, 建物情報);
     
-    if (判定結果_令21.根拠リスト.length > 0) {
-        // generateResultDescription関数を使用して詳細な説明文を生成
-        const fullDescription = generateResultDescription(判定結果_令21, 特小判定結果, 建物情報);
-        
-        // 令第21条の部分のみを抽出（特小判定結果より前の部分）
-        const rei21Description = fullDescription.split('特定小規模施設用自動火災報知設備')[0].trim();
-        
-        rei21Card.querySelector('.result-details').textContent = rei21Description;
-        
-    } else {
-        rei21Card.querySelector('.result-details').textContent = 'この建物には自動火災報知設備の設置義務がありません。';
-    }
+    // 令第21条の判定結果カード
+    const rei21Card = createStructuredResultCard(
+        '自動火災報知設備の設置義務',
+        structuredResult.rei21.hasObligation ? '設置義務あり' : '設置義務なし',
+        structuredResult.rei21.hasObligation ? 'warning' : 'success',
+        structuredResult.rei21
+    );
     
     resultContent.appendChild(rei21Card);
     
     // 特小自火報の判定結果カード
-    const tokushoCard = createResultCard(
+    const tokushoCard = createStructuredResultCard(
         '特定小規模施設用自動火災報知設備',
-        特小判定結果.設置可否,
-        特小判定結果.設置可否 === '設置可能' ? 'success' : 
-        特小判定結果.設置可否 === '判定対象外' ? 'warning' : 'error'
+        structuredResult.tokusho.applicable ? 
+            (structuredResult.tokusho.canInstall ? '設置可能' : '設置不可') : 
+            '判定対象外',
+        structuredResult.tokusho.applicable ? 
+            (structuredResult.tokusho.canInstall ? 'success' : 'error') : 
+            'warning',
+        structuredResult.tokusho
     );
     
-    tokushoCard.querySelector('.result-details').textContent = 特小判定結果.根拠;
     resultContent.appendChild(tokushoCard);
     
     // 入力内容の確認カード
@@ -327,6 +321,176 @@ function createResultCard(title, status, type) {
     `;
     
     return card;
+}
+
+/**
+ * 構造化された結果カードを作成
+ */
+function createStructuredResultCard(title, status, type, data) {
+    const card = document.createElement('div');
+    card.className = `result-card ${type}`;
+    
+    const iconMap = {
+        success: 'check_circle',
+        warning: 'warning',
+        error: 'error'
+    };
+    
+    // カードのヘッダー部分
+    const header = document.createElement('div');
+    header.className = 'result-title';
+    header.innerHTML = `
+        <span class="material-icons">${iconMap[type]}</span>
+        ${title}
+    `;
+    
+    const statusDiv = document.createElement('div');
+    statusDiv.className = 'result-description';
+    statusDiv.textContent = status;
+    
+    const detailsDiv = document.createElement('div');
+    detailsDiv.className = 'result-details';
+    
+    // 詳細内容を構築
+    if (data.hasObligation === false || data.applicable === false) {
+        // 設置義務なし、または判定対象外の場合
+        detailsDiv.textContent = data.description;
+    } else {
+        // 構造化された詳細表示
+        if (data.legalBasis) {
+            // 法的根拠ブロックの生成
+            const legalBlock = createResultBlock(
+                data.legalBasis.title, 
+                data.legalBasis.description,
+                'gavel' // アイコン名を渡す
+            );
+
+            // 号数タグのコンテナを作成
+            const tagsContainer = document.createElement('div');
+            tagsContainer.className = 'legal-tags-container';
+            
+            // 「該当号：」ラベルを追加
+            const label = document.createElement('span');
+            label.className = 'legal-tags-label';
+            label.textContent = '該当号：';
+            tagsContainer.appendChild(label);
+            
+            data.legalBasis.applicableLaws.forEach(law => {
+                const tag = document.createElement('span');
+                tag.className = 'legal-number-tag';
+                tag.textContent = law;
+                tagsContainer.appendChild(tag);
+            });
+            legalBlock.appendChild(tagsContainer);
+            detailsDiv.appendChild(legalBlock);
+        }
+        
+        if (data.scope) {
+            // 設置範囲ブロックの生成
+            const scopeBlock = createResultBlock(
+                data.scope.title, 
+                null, // 説明文は不要
+                'layers' // アイコン名を渡す
+            );
+            
+            // サマリータグ
+            const summaryTag = document.createElement('div');
+            summaryTag.className = 'result-summary-tag';
+            summaryTag.classList.add(data.scope.type === 'whole' ? 'result-summary-tag--whole' : 'result-summary-tag--partial');
+            summaryTag.innerHTML = `
+                <span class="material-icons">${data.scope.type === 'whole' ? 'business' : 'splitscreen'}</span>
+                ${data.scope.type === 'whole' ? '建物全体' : '一部分のみ'}
+            `;
+            // タイトルの後にタグを追加
+            scopeBlock.querySelector('.result-block-title').insertAdjacentElement('afterend', summaryTag);
+
+            // 設置範囲の詳細リスト
+            if (data.scope.details.length > 0) {
+                const list = document.createElement('ul');
+                list.className = 'result-block-list';
+                data.scope.details.forEach(text => {
+                    const li = document.createElement('li');
+                    li.textContent = text;
+                    list.appendChild(li);
+                });
+                scopeBlock.appendChild(list);
+            }
+            detailsDiv.appendChild(scopeBlock);
+        }
+        
+        if (data.smallScale) {
+            // 小規模特定ブロックの生成
+            const smallScaleBlock = createResultBlock(
+                data.smallScale.title, 
+                null,
+                'info'
+            );
+            
+            // 該当・非該当タグ
+            const applicabilityTag = document.createElement('div');
+            applicabilityTag.className = 'result-summary-tag';
+            applicabilityTag.classList.add(data.smallScale.isApplicable ? 'result-summary-tag--applicable' : 'result-summary-tag--not-applicable');
+            applicabilityTag.innerHTML = `
+                <span class="material-icons">${data.smallScale.isApplicable ? 'check_circle' : 'cancel'}</span>
+                ${data.smallScale.isApplicable ? '該当' : '非該当'}
+            `;
+            // タイトルの後にタグを追加
+            smallScaleBlock.querySelector('.result-block-title').insertAdjacentElement('afterend', applicabilityTag);
+            
+            // 該当の場合のみ詳細メッセージを表示
+            if (data.smallScale.isApplicable && data.smallScale.description) {
+                const content = document.createElement('p');
+                content.className = 'result-block-content';
+                content.textContent = data.smallScale.description;
+                smallScaleBlock.appendChild(content);
+            }
+            
+            detailsDiv.appendChild(smallScaleBlock);
+        }
+        
+        // 特小自火報用の簡単な表示
+        if (data.basis || data.reason) {
+            const basisText = data.basis ? `根拠: ${data.basis}` : `理由: ${data.reason}`;
+            const p = document.createElement('p');
+            p.textContent = basisText;
+            detailsDiv.appendChild(p);
+        }
+        
+        // 単純な説明の場合
+        if (!data.legalBasis && !data.scope && !data.specialNote && !data.basis && !data.reason && data.description) {
+            detailsDiv.textContent = data.description;
+        }
+    }
+    
+    card.appendChild(header);
+    card.appendChild(statusDiv);
+    card.appendChild(detailsDiv);
+    
+    return card;
+}
+
+/**
+ * 結果表示用の汎用ブロックを生成
+ */
+function createResultBlock(title, description, iconName = null) {
+    const block = document.createElement('div');
+    block.className = 'result-block';
+    
+    // アイコン表示に対応
+    const iconHtml = iconName ? `<span class="material-icons">${iconName}</span>` : '';
+    const titleElement = document.createElement('h4');
+    titleElement.className = 'result-block-title';
+    titleElement.innerHTML = `${iconHtml}${title}`;
+    block.appendChild(titleElement);
+
+    if (description) {
+        const content = document.createElement('p');
+        content.className = 'result-block-content';
+        content.textContent = description;
+        block.appendChild(content);
+    }
+    
+    return block;
 }
 
 /**

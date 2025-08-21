@@ -201,12 +201,13 @@ function 判定実行_令21(建物情報) {
 function 特小判定実行(判定結果_令21, 建物情報) {
     // --- STEP 0: 前提条件のチェック ---
     if (判定結果_令21.根拠リスト.length === 0) {
-        return { 設置可否: "判定対象外", 根拠: "自火報の設置義務がありません", 該当号: null };
+        return { 設置可否: "判定対象外", 根拠: "自火報の設置義務がありません", 該当号: null, hasAreaLimitIssue: false };
     }
 
     let 設置可能フラグ = false;
     let 判定根拠号 = null;
     let 否決理由 = "";
+    let hasAreaLimitIssue = false;
 
     // === イ号の判定 ===
     const 除外号リスト_イ = ["3号", "4号", "5号", "6号", "8号", "11号", "12号", "14号", "15号"];
@@ -296,6 +297,7 @@ function 特小判定実行(判定結果_令21, 建物情報) {
                     } else {
                         // ★★★ STEP 4: SOWに基づく具体的な否決理由の生成 ★★★
                         if (item.用途 === largestUse.用途) {
+                            hasAreaLimitIssue = true; // 500/1000上限に達したフラグを設定
                             理由_ロ = `主用途(${item.用途})と特定用途の合計面積(${判定対象面積}㎡)が${上限面積}㎡の上限に達するため`;
                         } else {
                             理由_ロ = `構成用途(${item.用途})の面積(${item.面積}㎡)が${上限面積}㎡の上限を超えるため`;
@@ -374,11 +376,11 @@ function 特小判定実行(判定結果_令21, 建物情報) {
 
     // === 最終結果の返却 ===
     if (設置可能フラグ) {
-        return { 設置可否: "設置可能", 根拠: `特定小規模施設に関する省令 第2条第1号【${判定根拠号}】に該当します。`, 該当号: 判定根拠号 };
+        return { 設置可否: "設置可能", 根拠: `特定小規模施設に関する省令 第2条第1号【${判定根拠号}】に該当します。`, 該当号: 判定根拠号, hasAreaLimitIssue: hasAreaLimitIssue };
     } else {
         // 全ての判定に失敗した場合の理由を設定
         const finalReason = 否決理由 || "特定小規模施設のいずれの要件にも該当しませんでした。";
-        return { 設置可否: "設置不可", 根拠: finalReason, 該当号: null };
+        return { 設置可否: "設置不可", 根拠: finalReason, 該当号: null, hasAreaLimitIssue: hasAreaLimitIssue };
     }
 }
 
@@ -470,48 +472,84 @@ function validateBuildingInfo(建物情報) {
  * @param {object} 建物情報 - 建物情報
  * @returns {string} 説明文
  */
+/**
+ * 構造化された判定結果説明オブジェクトを生成する
+ * @param {object} 判定結果_令21 - 令第21条の判定結果
+ * @param {object} 特小判定結果 - 特小自火報の判定結果
+ * @param {object} 建物情報 - 建物情報オブジェクト
+ * @returns {object} 構造化された判定結果説明オブジェクト
+ */
 function generateResultDescription(判定結果_令21, 特小判定結果, 建物情報) {
-    let description = "";
+    const result = {
+        rei21: {},
+        tokusho: {}
+    };
     
-    // --- STEP 1: 令第21条の判定結果説明（基本部分） ---
+    // --- 令第21条の判定結果構造化 ---
     if (判定結果_令21.根拠リスト.length === 0) {
-        description += "この建物は消防法施行令第21条による自動火災報知設備の設置義務がありません。\n\n";
+        result.rei21 = {
+            hasObligation: false,
+            description: "この建物は消防法施行令第21条による自動火災報知設備の設置義務がありません。"
+        };
     } else {
-        description += "この建物は消防法施行令第21条により自動火災報知設備の設置義務があります。\n";
-        description += `該当する号: ${判定結果_令21.根拠リスト.join(", ")}\n\n`;
+        result.rei21 = {
+            hasObligation: true,
+            legalBasis: {
+                title: "法的根拠",
+                description: "この建物は消防法施行令第21条により自動火災報知設備の設置義務があります。",
+                applicableLaws: 判定結果_令21.根拠リスト
+            },
+            scope: {
+                title: "設置範囲",
+                type: 判定結果_令21.全体義務 ? "whole" : "partial",
+                details: []
+            }
+        };
         
+        // 設置範囲の詳細を構築
         if (判定結果_令21.全体義務) {
-            description += `建物全体に設置義務があります（${判定結果_令21.全体義務}）。\n`;
+            result.rei21.scope.details.push(`建物全体に設置義務があります（${判定結果_令21.全体義務}）`);
         }
         
         if (判定結果_令21.部分義務リスト.length > 0) {
-            description += "以下の部分に設置義務があります：\n";
+            result.rei21.scope.details.push("以下の部分に設置義務があります：");
             for (const item of 判定結果_令21.部分義務リスト) {
-                description += `- ${item.対象}（${item.号}）\n`;
+                result.rei21.scope.details.push(`${item.対象}（${item.号}）`);
             }
         }
-        description += "\n";
-
-        // ★★★ ここからが修正箇所 ★★★
-        // 設置範囲限定の特例に該当する場合、分岐ではなく「追記」する
-        if (判定結果_令21.is設置範囲限定フラグ) {
-            description += "【補足事項】\n";
-            description += "この建物は小規模特定用途複合防火対象物に該当するため、省令第23条第４項第１号ヘの規定により、みなし従属不可用途以外の部分には設置を要しません。\n\n";
-        }
+        
+        // 小規模特定用途複合防火対象物の情報（常に追加）
+        const smallScaleDetails = getSmallScaleDetails(建物情報, 判定結果_令21, 特小判定結果);
+        result.rei21.smallScale = {
+            title: "小規模特定用途複合防火対象物",
+            isApplicable: smallScaleDetails.isApplicable,
+            description: smallScaleDetails.message
+        };
     }
     
-    // --- STEP 2: 特小自火報の判定結果説明（変更なし） ---
+    // --- 特小自火報の判定結果構造化 ---
     if (特小判定結果.設置可否 === "判定対象外") {
-        description += "特定小規模施設用自動火災報知設備は判定対象外です。";
+        result.tokusho = {
+            applicable: false,
+            description: "特定小規模施設用自動火災報知設備は判定対象外です。"
+        };
     } else if (特小判定結果.設置可否 === "設置可能") {
-        description += `特定小規模施設用自動火災報知設備の設置が可能です。\n`;
-        description += `根拠: ${特小判定結果.根拠}`;
+        result.tokusho = {
+            applicable: true,
+            canInstall: true,
+            description: "特定小規模施設用自動火災報知設備の設置が可能です。",
+            basis: 特小判定結果.根拠
+        };
     } else {
-        description += `特定小規模施設用自動火災報知設備の設置はできません。\n`;
-        description += `理由: ${特小判定結果.根拠}`;
+        result.tokusho = {
+            applicable: true,
+            canInstall: false,
+            description: "特定小規模施設用自動火災報知設備の設置はできません。",
+            reason: 特小判定結果.根拠
+        };
     }
     
-    return description;
+    return result;
 }
 
 /**
@@ -533,4 +571,39 @@ function isShokiboTokutei(建物情報) {
     const conditionA = (totalTargetArea < 300);
     const conditionB = (totalTargetArea <= 建物情報.延べ面積 / 10);
     return conditionA && conditionB;
+}
+
+/**
+ * 小規模特定用途複合防火対象物の詳細状況を判定
+ * @param {object} 建物情報
+ * @param {object} 判定結果_令21
+ * @param {object} 特小判定結果
+ * @returns {object} 詳細判定結果
+ */
+function getSmallScaleDetails(建物情報, 判定結果_令21, 特小判定結果) {
+    const isSmallScale = isShokiboTokutei(建物情報);
+    
+    if (!isSmallScale) {
+        return {
+            isApplicable: false,
+            hasLimitedInstallation: false,
+            message: null
+        };
+    }
+
+    const hasInstallationLimitation = 判定結果_令21.is設置範囲限定フラグ;
+    const hasAreaLimitIssue = 特小判定結果.hasAreaLimitIssue || false;
+    
+    let message = null;
+    if (hasAreaLimitIssue) {
+        message = "この建物は小規模特定用途複合防火対象物に該当しますが、省令第23条第４項第１号ヘに該当しない部分が存するので注意が必要です。";
+    } else if (hasInstallationLimitation) {
+        message = "この建物は小規模特定用途複合防火対象物に該当するため、省令第23条第４項第１号ヘの規定により、みなし従属不可用途以外の部分には設置を要しません。";
+    }
+    
+    return {
+        isApplicable: true,
+        hasLimitedInstallation: hasInstallationLimitation,
+        message: message
+    };
 }
